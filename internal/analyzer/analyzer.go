@@ -24,7 +24,7 @@ func Analyze(Settings *config.Settings) {
 	}
 }
 
-func analyzeRepos(repoSettings *[]config.Repo, workspaceHandler workspace.WorkspaceHandler) {
+func analyzeRepos(repoSettings *[]config.Repo, workspaceHandler workspace.Workspace) {
 	fmt.Printf("Found %d repositories to analyze 🚀\n", len(*repoSettings))
 
 	// Create Workdir if required or clean it up => move it into a own function and not in the git tool

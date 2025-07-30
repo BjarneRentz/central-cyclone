@@ -8,12 +8,17 @@ import (
 
 const workspacePath = "workfolder"
 
-type workspaceStruct struct {
+type workspaceHandler struct {
 	path string
 }
 
+type Workspace interface {
+	Clear() error
+	List() ([]string, error)
+}
+
 // Removes all files and folders in the workspace directory
-func (w workspaceStruct) Clear() error {
+func (w workspaceHandler) Clear() error {
 	entries, err := os.ReadDir(w.path)
 	if err != nil {
 		return fmt.Errorf("failed to read workspace directory: %w", err)
@@ -27,11 +32,20 @@ func (w workspaceStruct) Clear() error {
 	return nil
 }
 
-type WorkspaceHandler interface {
-	Clear() error
+func (w workspaceHandler) List() ([]string, error) {
+	entries, err := os.ReadDir(w.path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read workspace directory: %w", err)
+	}
+
+	var files []string
+	for _, entry := range entries {
+		files = append(files, entry.Name())
+	}
+	return files, nil
 }
 
-func CreateWorkspace() (WorkspaceHandler, error) {
+func CreateWorkspace() (Workspace, error) {
 	// Get the executable path
 	ex, err := os.Executable()
 	if err != nil {
@@ -53,7 +67,7 @@ func CreateWorkspace() (WorkspaceHandler, error) {
 		fmt.Printf("Work directory '%s' already exists.\n", fullWorkFolderPath)
 	}
 
-	return workspaceStruct{
+	return workspaceHandler{
 		path: fullWorkFolderPath,
 	}, nil
 }
