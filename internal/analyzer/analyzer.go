@@ -1,40 +1,23 @@
 package analyzer
 
 import (
-	"central-cyclone/internal/config"
-	"central-cyclone/internal/workspace"
 	"fmt"
+	"os/exec"
+	"path/filepath"
 )
 
-func Analyze(Settings *config.Settings) {
-
-	var workspaceHandler, err = workspace.CreateWorkspace()
-	if err != nil {
-		fmt.Printf("Error creating workspace: %v\n", err)
-		return
-	}
-	workspaceHandler.Clear()
-
-	if Settings != nil && len(Settings.Repositories) != 0 {
-		analyzeRepos(&Settings.Repositories, workspaceHandler)
-	}
-
-	for _, repo := range Settings.Repositories {
-		fmt.Printf("Repository URL: %s\n", repo.Url)
-	}
+type Analyzer interface {
+	AnalyzeProject(projectPath string, projectType string) (string, error)
 }
 
-func analyzeRepos(repoSettings *[]config.Repo, workspaceHandler workspace.Workspace) {
-	fmt.Printf("Found %d repositories to analyze 🚀\n", len(*repoSettings))
+type CdxgenAnalyzer struct{}
 
-	// clone repos
-	// create sboms
-	name, err := workspaceHandler.CloneRepoToWorkspace((*repoSettings)[0].Url)
+func (a CdxgenAnalyzer) AnalyzeProject(projectPath string, projectType string) (string, error) {
+	sbomPath := filepath.Join(projectPath, "sbom.json")
+	cmd := exec.Command("cdxgen", "-t", projectType, "-o", sbomPath, projectPath)
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("Error cloning repository: %v\n", err)
-		return
+		return "", fmt.Errorf("cdxgen failed: %v\nOutput: %s", err, string(output))
 	}
-
-	fmt.Printf("Cloned repository to: %s\n", name)
-
+	return sbomPath, nil
 }

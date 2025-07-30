@@ -1,7 +1,8 @@
 {
     "repositories": [
         {
-            "url": "test"
+            "url": "https://github.com/BjarneRentz/obsidian-gemini-generator.git",
+            "projectId": "obsidian-gemini-generator"
         }
     ]
 }

@@ -4,8 +4,8 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"central-cyclone/internal/analyzer"
 	"central-cyclone/internal/config"
+	"central-cyclone/internal/manager"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -24,7 +24,7 @@ var analyzeCmd = &cobra.Command{
 			fmt.Printf("Error loading configuration: %v\n", err)
 			return
 		}
-		analyzer.Analyze(config)
+		manager.RunForSettings(config)
 		// Call method with config as an entry point
 	},
 }
