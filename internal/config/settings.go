@@ -11,9 +11,13 @@ type Settings struct {
 }
 
 type Repo struct {
-	Url       string   `json:"url"`
-	ProjectId string   `json:"projectId"`
-	Types     []string `json:"types"`
+	Url     string       `json:"url"`
+	Targets []RepoTarget `json:"targets"`
+}
+
+type RepoTarget struct {
+	ProjectId string `json:"projectId"`
+	Type      string `json:"type"`
 }
 
 func LoadFromFile(filePath string) (*Settings, error) {

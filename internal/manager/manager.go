@@ -43,9 +43,9 @@ func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace) {
 	an := analyzer.CdxgenAnalyzer{}
 	fmt.Printf("Analyzing %s...\n", repoPath)
 
-	for _, t := range repo.Types {
-		fmt.Printf("🔬 Analyzing repo for type: %s\n", t)
-		_, err = an.AnalyzeProject(repoPath, t)
+	for _, t := range repo.Targets {
+		fmt.Printf("🔬 Analyzing repo for target: %s\n", t.Type)
+		_, err = an.AnalyzeProject(repoPath, t.Type)
 
 		if err != nil {
 			fmt.Printf("Error analyzing project: %v\n", err)

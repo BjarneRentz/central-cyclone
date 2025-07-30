@@ -2,8 +2,16 @@
     "repositories": [
         {
             "url": "https://github.com/BjarneRentz/obsidian-gemini-generator.git",
-            "projectId": "obsidian-gemini-generator",
-            "types": ["node", "java"]
+            "targets": [
+                {
+                    "projectId": "obsidian-gemini-generator-node",
+                    "type": "node"
+                }, {
+                    "projectId": "obsidian-gemini-generator-java",
+                    "type": "java"
+                }
+            ]
+            
         }
     ]
 }
