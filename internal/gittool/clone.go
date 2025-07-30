@@ -1,13 +1,14 @@
 package gittool
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 )
 
-// CloneRepoToDir clones a git repo from the given URL into the specified directory.
 func CloneRepoToDir(repoURL, targetDir string) error {
-	cmd := exec.Command("git", "clone", repoURL, targetDir)
+	fmt.Printf("🛠️  Cloning repo %s into the workfolder\n", repoURL)
+	cmd := exec.Command("git", "clone", "--quiet", repoURL, targetDir)
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }

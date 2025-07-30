@@ -41,7 +41,6 @@ func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace) {
 	}
 
 	an := analyzer.CdxgenAnalyzer{}
-	fmt.Printf("Analyzing %s...\n", repoPath)
 
 	for _, t := range repo.Targets {
 		fmt.Printf("🔬 Analyzing repo for target: %s\n", t.Type)
