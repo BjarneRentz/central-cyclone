@@ -1,9 +1,12 @@
 package workspace
 
 import (
+	"central-cyclone/internal/gittool"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const workspacePath = "workfolder"
@@ -15,6 +18,35 @@ type workspaceHandler struct {
 type Workspace interface {
 	Clear() error
 	List() ([]string, error)
+	CloneRepoToWorkspace(repoUrl string) (string, error)
+}
+
+func (w workspaceHandler) CloneRepoToWorkspace(repoUrl string) (string, error) {
+	parsedUrl, err := url.Parse(repoUrl)
+	if err != nil {
+		return "", fmt.Errorf("invalid repo URL: %w", err)
+	}
+
+	// Example: https://github.com/org/repo.git -> org_repo
+	pathParts := strings.Split(strings.TrimSuffix(parsedUrl.Path, ".git"), "/")
+	if len(pathParts) < 3 {
+		return "", fmt.Errorf("unexpected repo URL format: %s", repoUrl)
+	}
+	org := pathParts[1]
+	repo := pathParts[2]
+	folderName := fmt.Sprintf("%s_%s", org, repo)
+	targetDir := filepath.Join(w.path, folderName)
+	if _, err := os.Stat(targetDir); os.IsNotExist(err) {
+		if err := os.MkdirAll(targetDir, 0755); err != nil {
+			return "", fmt.Errorf("failed to create target dir: %w", err)
+		}
+	}
+
+	err = gittool.CloneRepoToDir(repoUrl, targetDir)
+	if err != nil {
+		return "", fmt.Errorf("failed to clone repo: %w", err)
+	}
+	return targetDir, nil
 }
 
 // Removes all files and folders in the workspace directory
@@ -46,15 +78,11 @@ func (w workspaceHandler) List() ([]string, error) {
 }
 
 func CreateWorkspace() (Workspace, error) {
-	// Get the executable path
-	ex, err := os.Executable()
+	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get executable path: %w", err)
+		return nil, fmt.Errorf("failed to get user home directory: %w", err)
 	}
-	execDir := filepath.Dir(ex)
-
-	// Construct the full path for the work folder
-	fullWorkFolderPath := filepath.Join(execDir, workspacePath)
+	fullWorkFolderPath := filepath.Join(homeDir, ".central-cyclone", workspacePath)
 
 	if _, err := os.Stat(fullWorkFolderPath); os.IsNotExist(err) {
 		fmt.Printf("Creating work directory: %s\n", fullWorkFolderPath)

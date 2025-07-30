@@ -2,7 +2,6 @@ package analyzer
 
 import (
 	"central-cyclone/internal/config"
-	"central-cyclone/internal/gittool"
 	"central-cyclone/internal/workspace"
 	"fmt"
 )
@@ -14,6 +13,7 @@ func Analyze(Settings *config.Settings) {
 		fmt.Printf("Error creating workspace: %v\n", err)
 		return
 	}
+	workspaceHandler.Clear()
 
 	if Settings != nil && len(Settings.Repositories) != 0 {
 		analyzeRepos(&Settings.Repositories, workspaceHandler)
@@ -27,11 +27,14 @@ func Analyze(Settings *config.Settings) {
 func analyzeRepos(repoSettings *[]config.Repo, workspaceHandler workspace.Workspace) {
 	fmt.Printf("Found %d repositories to analyze 🚀\n", len(*repoSettings))
 
-	// Create Workdir if required or clean it up => move it into a own function and not in the git tool
 	// clone repos
 	// create sboms
-	gittool.CloneRepo((*repoSettings)[0].Url)
+	name, err := workspaceHandler.CloneRepoToWorkspace((*repoSettings)[0].Url)
+	if err != nil {
+		fmt.Printf("Error cloning repository: %v\n", err)
+		return
+	}
 
-	workspaceHandler.Clear()
+	fmt.Printf("Cloned repository to: %s\n", name)
 
 }
