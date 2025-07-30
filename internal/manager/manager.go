@@ -25,22 +25,32 @@ func RunForSettings(Settings *config.Settings) {
 func analyzeRepos(repoSettings *[]config.Repo, workspaceHandler workspace.Workspace) {
 	fmt.Printf("Found %d repositories to analyze 🚀\n", len(*repoSettings))
 
-	// clone repos
-	// create sboms
-	repoPath, err := workspaceHandler.CloneRepoToWorkspace((*repoSettings)[0].Url)
+	for _, repo := range *repoSettings {
+		analyzeRepo(&repo, workspaceHandler)
+	}
+
+}
+
+func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace) {
+	fmt.Printf("🔎 Analyzing repository: %s\n", repo.Url)
+
+	repoPath, err := workspaceHandler.CloneRepoToWorkspace(repo.Url)
 	if err != nil {
 		fmt.Printf("Error cloning repository: %v\n", err)
 		return
 	}
 
-	fmt.Printf("Cloned repository to: %s\n", repoPath)
-
 	an := analyzer.CdxgenAnalyzer{}
 	fmt.Printf("Analyzing %s...\n", repoPath)
-	_, err = an.AnalyzeProject(repoPath, "node")
-	if err != nil {
-		fmt.Printf("Error analyzing project: %v\n", err)
-	}
-	fmt.Printf("✅ Finished analyzing repo %s\n", (*repoSettings)[0].Url)
 
+	for _, t := range repo.Types {
+		fmt.Printf("🔬 Analyzing repo for type: %s\n", t)
+		_, err = an.AnalyzeProject(repoPath, t)
+
+		if err != nil {
+			fmt.Printf("Error analyzing project: %v\n", err)
+			return
+		}
+	}
+	fmt.Printf("✅ Finished analyzing repo %s\n", repo.Url)
 }

@@ -13,7 +13,8 @@ type Analyzer interface {
 type CdxgenAnalyzer struct{}
 
 func (a CdxgenAnalyzer) AnalyzeProject(projectPath string, projectType string) (string, error) {
-	sbomPath := filepath.Join(projectPath, "sbom.json")
+	fileName := fmt.Sprintf("sbom_%s.json", projectType)
+	sbomPath := filepath.Join(projectPath, fileName)
 	cmd := exec.Command("cdxgen", "-t", projectType, "-o", sbomPath, projectPath)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
