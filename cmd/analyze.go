@@ -5,7 +5,7 @@ package cmd
 
 import (
 	"central-cyclone/internal/config"
-	"central-cyclone/internal/manager"
+	"central-cyclone/internal/coordinator"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -24,7 +24,7 @@ var analyzeCmd = &cobra.Command{
 			fmt.Printf("Error loading configuration: %v\n", err)
 			return
 		}
-		manager.RunForSettings(config)
+		coordinator.RunForSettings(config)
 		// Call method with config as an entry point
 	},
 }
