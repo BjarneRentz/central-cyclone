@@ -1,0 +1,72 @@
+services:
+  devcontainer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["sleep", "infinity"]
+    volumes:
+      - ../..:/workspaces:cached
+  apiserver:
+    image: dependencytrack/apiserver
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ALPINE_DATABASE_MODE: "external"
+      ALPINE_DATABASE_URL: "jdbc:postgresql://postgres:5432/dtrack"
+      ALPINE_DATABASE_DRIVER: "org.postgresql.Driver"
+      ALPINE_DATABASE_USERNAME: "dtrack"
+      ALPINE_DATABASE_PASSWORD: "dtrack"
+    deploy:
+      resources:
+        limits:
+          memory: 12288m
+        reservations:
+          memory: 8192m
+      restart_policy:
+        condition: on-failure
+    ports:
+    - '8081:8080'
+    volumes:
+    - 'dtrack-data:/data'
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -t 1 -T 3 --no-proxy -q -O /dev/null http://127.0.0.1:8080$${CONTEXT}health || exit 1" ]
+      interval: 30s
+      start_period: 60s
+      timeout: 3s
+  frontend:
+    image: dependencytrack/frontend
+    depends_on:
+      apiserver:
+        condition: service_healthy
+    environment:
+      # The base URL of the API server.
+      # NOTE:
+      #   * This URL must be reachable by the browsers of your users.
+      #   * The frontend container itself does NOT communicate with the API server directly, it just serves static files.
+      #   * When deploying to dedicated servers, please use the external IP or domain of the API server.
+      API_BASE_URL: "http://localhost:8081"
+    # OIDC_ISSUER: ""
+    # OIDC_CLIENT_ID: ""
+    # OIDC_SCOPE: ""
+    # OIDC_FLOW: ""
+    # OIDC_LOGIN_BUTTON_TEXT: ""
+    # volumes:
+    # - "/host/path/to/config.json:/app/static/config.json"
+    ports:
+      - "8080:8080"
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: "dtrack"
+      POSTGRES_USER: "dtrack"
+      POSTGRES_PASSWORD: "dtrack"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+volumes:
+  dtrack-data: {}
+  postgres-data: {}
