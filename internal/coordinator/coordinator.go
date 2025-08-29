@@ -3,6 +3,7 @@ package coordinator
 import (
 	"central-cyclone/internal/analyzer"
 	"central-cyclone/internal/config"
+	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
 	"fmt"
 )
@@ -41,15 +42,23 @@ func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace) {
 	}
 
 	an := analyzer.CdxgenAnalyzer{}
+	uploader := upload.DependencyTrackUploader{ServerURL: "http://apiserver:8080"}
 
 	for _, t := range repo.Targets {
 		fmt.Printf("🔬 Analyzing repo for target: %s\n", t.Type)
-		_, err = an.AnalyzeProject(repoPath, t.Type)
+		sbomPath, err := an.AnalyzeProject(repoPath, t.Type)
 
 		if err != nil {
 			fmt.Printf("Error analyzing project: %v\n", err)
 			return
 		}
+
+		err = uploader.UploadSBOM(sbomPath, t.ProjectId)
+		if err != nil {
+			fmt.Printf("Error uploading SBOM: %v\n", err)
+			return
+		}
+		fmt.Print("⬆️  Uploaded SBOM successfully\n")
 	}
 	fmt.Printf("✅ Finished analyzing repo %s\n", repo.Url)
 }
