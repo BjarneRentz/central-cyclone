@@ -1,4 +1,7 @@
 {
+    "dependencyTrack": {
+        "url": "http://apiserver:8080"
+    },
     "repositories": [
         {
             "url": "https://github.com/BjarneRentz/obsidian-gemini-generator.git",
