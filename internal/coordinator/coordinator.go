@@ -15,7 +15,11 @@ func RunForSettings(settings *config.Settings) {
 		fmt.Printf("Error creating workspace: %v\n", err)
 		return
 	}
-	workspaceHandler.Clear()
+	err = workspaceHandler.Clear()
+	if err != nil {
+		fmt.Printf("Error clearing workspace: %v\n", err)
+		return
+	}
 
 	if settings != nil && len(settings.Repositories) != 0 {
 		uploader := upload.DependencyTrackUploader{ServerURL: settings.DependencyTrack.Url}
