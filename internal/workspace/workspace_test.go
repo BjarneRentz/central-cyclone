@@ -6,7 +6,7 @@ import (
 )
 
 func TestWorkspaceHandler_Clear_NonExistent_Throws(t *testing.T) {
-	w := workspaceHandler{path: "./nonexistentdir"}
+	w := localWorkspace{path: "./nonexistentdir"}
 	err := w.Clear()
 	if err == nil {
 		t.Error("expected error for non-existent directory, got nil")
@@ -15,7 +15,7 @@ func TestWorkspaceHandler_Clear_NonExistent_Throws(t *testing.T) {
 
 func TestWorkspaceHandler_Clear_Empty(t *testing.T) {
 	dir := t.TempDir()
-	w := workspaceHandler{path: dir}
+	w := localWorkspace{path: dir}
 	if err := w.Clear(); err != nil {
 		t.Errorf("unexpected error clearing empty dir: %v", err)
 	}

@@ -11,8 +11,9 @@ import (
 
 const workspacePath = "workfolder"
 
-type workspaceHandler struct {
-	path string
+type localWorkspace struct {
+	path      string
+	gitCloner gittool.Cloner
 }
 
 type Workspace interface {
@@ -21,7 +22,7 @@ type Workspace interface {
 	CloneRepoToWorkspace(repoUrl string) (string, error)
 }
 
-func (w workspaceHandler) CloneRepoToWorkspace(repoUrl string) (string, error) {
+func (w localWorkspace) CloneRepoToWorkspace(repoUrl string) (string, error) {
 	parsedUrl, err := url.Parse(repoUrl)
 	if err != nil {
 		return "", fmt.Errorf("invalid repo URL: %w", err)
@@ -42,7 +43,7 @@ func (w workspaceHandler) CloneRepoToWorkspace(repoUrl string) (string, error) {
 		}
 	}
 
-	err = gittool.CloneRepoToDir(repoUrl, targetDir)
+	err = w.gitCloner.CloneRepoToDir(repoUrl, targetDir)
 	if err != nil {
 		return "", fmt.Errorf("failed to clone repo: %w", err)
 	}
@@ -50,7 +51,7 @@ func (w workspaceHandler) CloneRepoToWorkspace(repoUrl string) (string, error) {
 }
 
 // Removes all files and folders in the workspace directory
-func (w workspaceHandler) Clear() error {
+func (w localWorkspace) Clear() error {
 	entries, err := os.ReadDir(w.path)
 	if err != nil {
 		return fmt.Errorf("failed to read workspace directory: %w", err)
@@ -64,7 +65,7 @@ func (w workspaceHandler) Clear() error {
 	return nil
 }
 
-func (w workspaceHandler) List() ([]string, error) {
+func (w localWorkspace) List() ([]string, error) {
 	entries, err := os.ReadDir(w.path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read workspace directory: %w", err)
@@ -77,7 +78,7 @@ func (w workspaceHandler) List() ([]string, error) {
 	return files, nil
 }
 
-func CreateWorkspace() (Workspace, error) {
+func CreateLocalWorkspace() (Workspace, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user home directory: %w", err)
@@ -95,7 +96,8 @@ func CreateWorkspace() (Workspace, error) {
 		fmt.Printf("Work directory '%s' already exists.\n", fullWorkFolderPath)
 	}
 
-	return workspaceHandler{
-		path: fullWorkFolderPath,
+	return localWorkspace{
+		path:      fullWorkFolderPath,
+		gitCloner: gittool.LocalGitCloner{},
 	}, nil
 }

@@ -10,7 +10,7 @@ import (
 
 func RunForSettings(settings *config.Settings) {
 
-	var workspaceHandler, err = workspace.CreateWorkspace()
+	var workspaceHandler, err = workspace.CreateLocalWorkspace()
 	if err != nil {
 		fmt.Printf("Error creating workspace: %v\n", err)
 		return
