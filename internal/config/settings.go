@@ -7,7 +7,8 @@ import (
 )
 
 type Settings struct {
-	Repositories []Repo `json:"repositories"`
+	Repositories    []Repo                `json:"repositories"`
+	DependencyTrack DependencyTrackConfig `json:"dependencyTrack"`
 }
 
 type Repo struct {
@@ -18,6 +19,10 @@ type Repo struct {
 type RepoTarget struct {
 	ProjectId string `json:"projectId"`
 	Type      string `json:"type"`
+}
+
+type DependencyTrackConfig struct {
+	Url string `json:"url"`
 }
 
 func LoadFromFile(filePath string) (*Settings, error) {

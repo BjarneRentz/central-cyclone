@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-func RunForSettings(Settings *config.Settings) {
+func RunForSettings(settings *config.Settings) {
 
 	var workspaceHandler, err = workspace.CreateWorkspace()
 	if err != nil {
@@ -17,48 +17,59 @@ func RunForSettings(Settings *config.Settings) {
 	}
 	workspaceHandler.Clear()
 
-	if Settings != nil && len(Settings.Repositories) != 0 {
-		analyzeRepos(&Settings.Repositories, workspaceHandler)
+	if settings != nil && len(settings.Repositories) != 0 {
+		uploader := upload.DependencyTrackUploader{ServerURL: settings.DependencyTrack.Url}
+		analyzeRepos(settings.Repositories, workspaceHandler, uploader)
 	}
 
 }
 
-func analyzeRepos(repoSettings *[]config.Repo, workspaceHandler workspace.Workspace) {
-	fmt.Printf("Found %d repositories to analyze 🚀\n", len(*repoSettings))
+func analyzeRepos(repoSettings []config.Repo, workspaceHandler workspace.Workspace, uploader upload.Uploader) {
+	fmt.Printf("Found %d repositories to analyze 🚀\n", len(repoSettings))
 
-	for _, repo := range *repoSettings {
-		analyzeRepo(&repo, workspaceHandler)
+	for _, repo := range repoSettings {
+		err := analyzeRepo(&repo, workspaceHandler, uploader)
+		if err != nil {
+			fmt.Printf("Error analyzing repo %s: %v\n", repo.Url, err)
+		}
 	}
 
 }
 
-func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace) {
+func uploadSbom(uploader upload.Uploader, sbomPath string, projectId string) error {
+	err := uploader.UploadSBOM(sbomPath, projectId)
+	if err != nil {
+		fmt.Printf("Error uploading SBOM: %v\n", err)
+		return err
+	}
+	fmt.Print("⬆️  Uploaded SBOM successfully\n")
+	return nil
+}
+
+func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace, uploader upload.Uploader) error {
 	fmt.Printf("🔎 Analyzing repository: %s\n", repo.Url)
 
 	repoPath, err := workspaceHandler.CloneRepoToWorkspace(repo.Url)
 	if err != nil {
-		fmt.Printf("Error cloning repository: %v\n", err)
-		return
+		return fmt.Errorf("error cloning repository: %w", err)
 	}
 
 	an := analyzer.CdxgenAnalyzer{}
-	uploader := upload.DependencyTrackUploader{ServerURL: "http://apiserver:8080"}
 
 	for _, t := range repo.Targets {
 		fmt.Printf("🔬 Analyzing repo for target: %s\n", t.Type)
 		sbomPath, err := an.AnalyzeProject(repoPath, t.Type)
 
 		if err != nil {
-			fmt.Printf("Error analyzing project: %v\n", err)
-			return
+			return fmt.Errorf("error analyzing project: %v", err)
 		}
 
-		err = uploader.UploadSBOM(sbomPath, t.ProjectId)
+		err = uploadSbom(uploader, sbomPath, t.ProjectId)
 		if err != nil {
-			fmt.Printf("Error uploading SBOM: %v\n", err)
-			return
+			return err
 		}
-		fmt.Print("⬆️  Uploaded SBOM successfully\n")
+
 	}
 	fmt.Printf("✅ Finished analyzing repo %s\n", repo.Url)
+	return nil
 }
