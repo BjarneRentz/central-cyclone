@@ -7,7 +7,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o central-cyclon main.go
 
 # Install tools (git, Node.js 22.x, npm, cdxgen)
-FROM node:22-alpine
+FROM node:24-alpine
 RUN apk add --no-cache git
 RUN npm install -g @cyclonedx/cdxgen
 COPY --from=builder /app/central-cyclon /app/central-cyclon
