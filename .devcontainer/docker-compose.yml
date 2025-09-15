@@ -23,8 +23,6 @@ services:
           memory: 12288m
         reservations:
           memory: 8192m
-      restart_policy:
-        condition: on-failure
     ports:
     - '8081:8080'
     volumes:
@@ -40,19 +38,7 @@ services:
       apiserver:
         condition: service_healthy
     environment:
-      # The base URL of the API server.
-      # NOTE:
-      #   * This URL must be reachable by the browsers of your users.
-      #   * The frontend container itself does NOT communicate with the API server directly, it just serves static files.
-      #   * When deploying to dedicated servers, please use the external IP or domain of the API server.
       API_BASE_URL: "http://localhost:8081"
-    # OIDC_ISSUER: ""
-    # OIDC_CLIENT_ID: ""
-    # OIDC_SCOPE: ""
-    # OIDC_FLOW: ""
-    # OIDC_LOGIN_BUTTON_TEXT: ""
-    # volumes:
-    # - "/host/path/to/config.json:/app/static/config.json"
     ports:
       - "8080:8080"
 
