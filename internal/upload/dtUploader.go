@@ -13,8 +13,6 @@ type DependencyTrackUploader struct {
 	ServerURL string
 }
 
-// UploadSBOM uploads the SBOM at sbomPath to the DependencyTrack server using its REST API.
-// The API key is read from the DEPENDENCYTRACK_API_KEY environment variable.
 func (uploader DependencyTrackUploader) UploadSBOM(sbomPath, projectId string) error {
 	apiKey := os.Getenv("DEPENDENCYTRACK_API_KEY")
 	if apiKey == "" {
