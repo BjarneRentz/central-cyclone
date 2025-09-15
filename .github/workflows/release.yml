@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "*"
+
+env:
+  REGISTRY: ghcr.io
+
+permissions:
+  contents: write
+  packages: write
+  attestations: write
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build and push
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: |
+          ${{env.REGISTRY}}/bjarnerentz/central-cyclone:${{ github.ref_name }}
+          ${{env.REGISTRY}}/bjarnerentz/central-cyclone:latest
+          
+    - name: Create release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        tag="${GITHUB_REF#refs/tags/}"
+
+        gh release create "$tag" \
+          --title="$tag" \
+          --draft \
+          --generate-notes \
+          main.js manifest.json styles.css
