@@ -38,10 +38,10 @@ Define your targets and settings in a JSON config file. See `exampleConfig.json`
             "url": "https://github.com/BjarneRentz/obsidian-gemini-generator.git",
             "targets": [
                 {
-                    "projectId": "obsidian-gemini-generator-node",
+                    "projectId": "2fbbfb99-132e-4e8d-b253-4aa8d58aa505",
                     "type": "node"
                 }, {
-                    "projectId": "obsidian-gemini-generator-java",
+                    "projectId": "2fbbfb99-132e-3d8d-b253-4aa8d58aa505",
                     "type": "java"
                 }
             ]
@@ -61,6 +61,19 @@ You can configure multiple targets for a single repository. This can be useful f
 analyze -c path-to-config
 ```
 - `-c path-to-config`: Path to your configuration JSON file.
+
+### Docker Image
+We provide an official docker image under the packages section of GitHub. It's recommended to use the docker image to run Central-Cyclone as it already includes all dependencies such as `git` and `cdxgen`.
+
+To use it, create a config as stated above  and mount it into the container. Just make sure, that the path given to the analyze command matches the mounted one:
+```
+docker run \
+-v ./myConfig.json:/config/config.json \
+-e DEPENDENCYTRACK_API_KEY=MY_API_KEY \
+ghcr.io/bjarnerentz/central-cyclone:latest analyze -c /config/config.json
+```
+
+
 
 ## Environment Variables
 - `DEPENDENCYTRACK_API_KEY` (required): API key for authenticating with Dependency-Track.
