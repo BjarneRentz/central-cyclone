@@ -28,7 +28,7 @@ jobs:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-        
+
     - name: Build and push
       uses: docker/build-push-action@v6
       with:
@@ -48,5 +48,4 @@ jobs:
         gh release create "$tag" \
           --title="$tag" \
           --draft \
-          --generate-notes \
-          main.js manifest.json styles.css
+          --generate-notes 
