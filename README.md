@@ -53,10 +53,10 @@ Define your targets and settings in a JSON config file. See `exampleConfig.json`
 ```
 The `dependencyTrack` section in your configuration file is **mandatory**, as is setting the `DEPENDENCYTRACK_API_KEY` environment variable. For more details, see the  [Environment Variables](#environment-variables) section.
 
-You can configure multiple targets for a single repository. This can be useful for a monorepo, where different programming languages or projects are managed under a single repository.
+You can configure multiple *targets* for a single repository. This can be useful for a monorepo, where different programming languages or projects are managed under a single repository. You can find all supported targets in the [Cdxgen documentation](https://cyclonedx.github.io/cdxgen/#/PROJECT_TYPES).
 
 
-### Command
+### Commands
 ```
 analyze -c path-to-config
 ```
@@ -74,9 +74,30 @@ ghcr.io/bjarnerentz/central-cyclone:latest analyze -c /config/config.json
 ```
 
 
+### Cloning Private Repositories
+**Supported Platforms:**
+Currently, this feature is tested with GitHub and Azure DevOps. If you successfully use it with another platform, please let us know!
+
+**URL Transformation Examples:**
+
+GitHub:
+https://github.com/<User>/<Repo>.git
+⟶ https://<Token>@github.com/<User>/<Repo>.git
+Azure DevOps:
+https://dev.azure.com/<Org>/<Project>/_git/<Repo>
+⟶ https://<Token>@dev.azure.com/<Org>/<Project>/_git/<Repo>
+
+**Note:**
+
+For GitHub, use fine-grained personal access token. Select the repos you want to clone and add the *Contents* permission as Read-only.
+For Azure DevOps, use a PAT with "Code" read permissions.
+If you encounter any issues or need support for other platforms, please open an Issue so we can improve future releases.
+
+Also check the documentation for available pipeline variables such as [`System.AccessToken`](https://learn.microsoft.com/de-de/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml#systemaccesstoken) in Azure Devops to prevent using long running tokens.
 
 ## Environment Variables
 - `DEPENDENCYTRACK_API_KEY` (required): API key for authenticating with Dependency-Track.
+- `GIT_TOKEN` (optional) can be set to clone private repositories.
 
 The API key only needs the BOM-Upload permissions for the projects. Central Cyclone will not create projects for you within DependencyTrack.
 
