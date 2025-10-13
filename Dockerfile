@@ -8,7 +8,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o central-cyclon main.go
 
 # Install tools (git, Node.js 22.x, npm, cdxgen)
 FROM mirror.gcr.io/library/node:22-alpine
-RUN apk add --no-cache git
+RUN apk add --no-cache git maven
 RUN apk --no-cache add ca-certificates
 RUN npm install -g @cyclonedx/cdxgen
 
