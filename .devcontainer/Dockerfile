@@ -4,7 +4,6 @@ FROM mcr.microsoft.com/devcontainers/go
 RUN apt-get update && \
     apt-get install -y curl && \
     curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
-    apt-get install -y nodejs
-
+    apt-get install -y nodejs maven
 # Install cdxgen globally
 RUN npm install -g @cyclonedx/cdxgen
