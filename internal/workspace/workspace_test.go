@@ -27,3 +27,22 @@ func TestWorkspaceHandler_Clear_Empty(t *testing.T) {
 		t.Errorf("expected empty dir, found %d entries", len(entries))
 	}
 }
+
+func TestGetFolderNameForRepoUrl(t *testing.T) {
+	var tests = []struct {
+		repoUrl            string
+		expectedFolderName string
+	}{
+		{"https://github.com/org/repo.git", "org_repo"},
+		{"https://dev.azure.com/my-org/my-project/_git/my-repo", "my-org_my-project_my-repo"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.repoUrl, func(t *testing.T) {
+			ans, _ := getFolderNameForRepoUrl(tt.repoUrl)
+			if ans != tt.expectedFolderName {
+				t.Errorf("got %s, want %s", ans, tt.expectedFolderName)
+			}
+		})
+	}
+}
