@@ -1,7 +1,6 @@
 package coordinator
 
 import (
-	"central-cyclone/internal/analyzer"
 	"central-cyclone/internal/config"
 	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
@@ -62,11 +61,9 @@ func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace, upload
 		return fmt.Errorf("error cloning repository: %w", err)
 	}
 
-	an := analyzer.CdxgenAnalyzer{}
-
 	for _, t := range repo.Targets {
 		fmt.Printf("🔬 Analyzing repo for target: %s\n", t.Type)
-		sbomPath, err := an.AnalyzeProject(repoPath, t.Type)
+		sbomPath, err := workspaceHandler.AnalyzeRepo(repoPath, t.Type)
 
 		if err != nil {
 			return fmt.Errorf("error analyzing project: %v", err)

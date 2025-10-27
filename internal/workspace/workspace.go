@@ -1,6 +1,7 @@
 package workspace
 
 import (
+	"central-cyclone/internal/analyzer"
 	"central-cyclone/internal/gittool"
 	"fmt"
 	"net/url"
@@ -18,11 +19,13 @@ type localWorkspace struct {
 	reposPath string
 	sbomsPath string
 	gitCloner gittool.Cloner
+	analyzer  analyzer.Analyzer
 }
 
 type Workspace interface {
 	Clear() error
 	CloneRepoToWorkspace(repoUrl string) (string, error)
+	AnalyzeRepo(repoUrl string, projectType string) (string, error)
 }
 
 func (w localWorkspace) CloneRepoToWorkspace(repoUrl string) (string, error) {
@@ -74,17 +77,22 @@ func (w localWorkspace) Clear() error {
 	return nil
 }
 
-func (w localWorkspace) List() ([]string, error) {
-	entries, err := os.ReadDir(w.path)
+func (w localWorkspace) AnalyzeRepo(repoUrl string, projectType string) (string, error) {
+	repoFolder, err := getFolderNameForRepoUrl(repoUrl)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read workspace directory: %w", err)
+		return "", fmt.Errorf("failed to get folder name from repo URL: %w", err)
+	}
+	repoPath := filepath.Join(w.reposPath, repoFolder)
+
+	sbomFileName := fmt.Sprintf("sbom_%s.json", projectType)
+	sbomPath := filepath.Join(w.sbomsPath, repoFolder+"_"+sbomFileName)
+
+	err = w.analyzer.AnalyzeProject(repoPath, projectType, sbomPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to analyze project: %w", err)
 	}
 
-	var files []string
-	for _, entry := range entries {
-		files = append(files, entry.Name())
-	}
-	return files, nil
+	return sbomPath, nil
 }
 
 func CreateLocalWorkspace() (Workspace, error) {
@@ -115,6 +123,7 @@ func CreateLocalWorkspace() (Workspace, error) {
 		reposPath: fullReposPath,
 		sbomsPath: fullSbomsPath,
 		gitCloner: gittool.LocalGitCloner{},
+		analyzer:  analyzer.CdxgenAnalyzer{},
 	}, nil
 }
 
