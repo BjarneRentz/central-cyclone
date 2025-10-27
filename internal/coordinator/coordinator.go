@@ -22,7 +22,11 @@ func RunForSettings(settings *config.Settings) {
 	}
 
 	if settings != nil && len(settings.Repositories) != 0 {
-		uploader := upload.DependencyTrackUploader{ServerURL: settings.DependencyTrack.Url}
+		uploader, err := upload.CreateDependencyTrackUploader(settings)
+		if err != nil {
+			fmt.Printf("Error creating uploader: %v\n", err)
+			return
+		}
 		analyzeRepos(settings.Repositories, workspaceHandler, uploader)
 	}
 

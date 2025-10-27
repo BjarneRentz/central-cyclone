@@ -10,22 +10,18 @@ import (
 )
 
 type DependencyTrackUploader struct {
-	ServerURL string
+	serverURL string
+	apiKey    string
 }
 
 func (uploader DependencyTrackUploader) UploadSBOM(sbomPath, projectId string) error {
-	apiKey := os.Getenv("DEPENDENCYTRACK_API_KEY")
-	if apiKey == "" {
-		return fmt.Errorf("DEPENDENCYTRACK_API_KEY environment variable is not set")
-	}
-
-	url := uploader.ServerURL + "/api/v1/bom"
+	url := uploader.serverURL + "/api/v1/bom"
 	encodedSbom, err := getEncodedSbom(sbomPath)
 	if err != nil {
 		return err
 	}
 
-	req, err := createRequest(url, apiKey, projectId, encodedSbom)
+	req, err := createRequest(url, uploader.apiKey, projectId, encodedSbom)
 	if err != nil {
 		return err
 	}
