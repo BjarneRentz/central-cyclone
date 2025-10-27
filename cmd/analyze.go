@@ -25,7 +25,6 @@ var analyzeCmd = &cobra.Command{
 			return
 		}
 		coordinator.RunForSettings(config)
-		// Call method with config as an entry point
 	},
 }
 

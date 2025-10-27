@@ -63,7 +63,7 @@ func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace, upload
 
 	for _, t := range repo.Targets {
 		fmt.Printf("🔬 Analyzing repo for target: %s\n", t.Type)
-		sbomPath, err := workspaceHandler.AnalyzeRepo(repoPath, t.Type)
+		sbomPath, err := workspaceHandler.AnalyzeRepoForTarget(repoPath, t.Type)
 
 		if err != nil {
 			return fmt.Errorf("error analyzing project: %v", err)

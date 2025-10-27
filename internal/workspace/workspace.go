@@ -25,7 +25,7 @@ type localWorkspace struct {
 type Workspace interface {
 	Clear() error
 	CloneRepoToWorkspace(repoUrl string) (string, error)
-	AnalyzeRepo(repoUrl string, projectType string) (string, error)
+	AnalyzeRepoForTarget(repoUrl string, projectType string) (string, error)
 }
 
 func (w localWorkspace) CloneRepoToWorkspace(repoUrl string) (string, error) {
@@ -77,7 +77,7 @@ func (w localWorkspace) Clear() error {
 	return nil
 }
 
-func (w localWorkspace) AnalyzeRepo(repoUrl string, projectType string) (string, error) {
+func (w localWorkspace) AnalyzeRepoForTarget(repoUrl string, projectType string) (string, error) {
 	repoFolder, err := getFolderNameForRepoUrl(repoUrl)
 	if err != nil {
 		return "", fmt.Errorf("failed to get folder name from repo URL: %w", err)
