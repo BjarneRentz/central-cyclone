@@ -19,7 +19,10 @@ func (m *mockGitCloner) CloneRepoToDir(repoURL, targetDir string) error {
 }
 
 func TestWorkspaceHandler_Clear_NonExistent_DoesNotThrow(t *testing.T) {
-	w := localWorkspace{path: "./nonexistentdir"}
+	w := localWorkspace{
+		path: "./nonexistentdir",
+		fs:   LocalFSHelper{},
+	}
 	err := w.Clear()
 	if err != nil {
 		t.Error("expected no error for non-existent directory")
@@ -28,11 +31,16 @@ func TestWorkspaceHandler_Clear_NonExistent_DoesNotThrow(t *testing.T) {
 
 func TestWorkspaceHandler_Clear_Empty(t *testing.T) {
 	dir := t.TempDir()
-	w := localWorkspace{path: dir}
+	fs := LocalFSHelper{}
+	w := localWorkspace{
+		path: dir,
+		fs:   fs,
+	}
 	if err := w.Clear(); err != nil {
 		t.Errorf("unexpected error clearing empty dir: %v", err)
 	}
-	entries, err := os.ReadDir(dir)
+
+	entries, err := fs.ListFiles(dir)
 	if err != nil {
 		t.Errorf("failed to read dir: %v", err)
 	}
@@ -69,9 +77,11 @@ func TestCloneRepoToWorkspace(t *testing.T) {
 
 			// Create a workspace with the mock cloner
 			w := localWorkspace{
-				path:      tempDir,
-				reposPath: reposPath,
-				gitCloner: mockCloner,
+				path:       tempDir,
+				reposPath:  reposPath,
+				gitCloner:  mockCloner,
+				fs:         LocalFSHelper{},
+				repoMapper: DefaultRepoMapper{},
 			}
 
 			// Call CloneRepoToWorkspace
@@ -98,25 +108,6 @@ func TestCloneRepoToWorkspace(t *testing.T) {
 			// Verify the directory was created
 			if _, err := os.Stat(tt.wantPath); os.IsNotExist(err) {
 				t.Errorf("expected directory %v to be created", tt.wantPath)
-			}
-		})
-	}
-}
-
-func TestGetFolderNameForRepoUrl(t *testing.T) {
-	var tests = []struct {
-		repoUrl            string
-		expectedFolderName string
-	}{
-		{"https://github.com/org/repo.git", "org_repo"},
-		{"https://dev.azure.com/my-org/my-project/_git/my-repo", "my-org_my-project_my-repo"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.repoUrl, func(t *testing.T) {
-			ans, _ := getFolderNameForRepoUrl(tt.repoUrl)
-			if ans != tt.expectedFolderName {
-				t.Errorf("got %s, want %s", ans, tt.expectedFolderName)
 			}
 		})
 	}
