@@ -2,11 +2,11 @@ package upload
 
 import (
 	"bytes"
+	"central-cyclone/internal/sbom"
 	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 )
 
 type DependencyTrackUploader struct {
@@ -14,14 +14,14 @@ type DependencyTrackUploader struct {
 	apiKey    string
 }
 
-func (uploader DependencyTrackUploader) UploadSBOM(sbomPath, projectId string) error {
+func (uploader DependencyTrackUploader) UploadSBOM(sbom sbom.Sbom) error {
 	url := uploader.serverURL + "/api/v1/bom"
-	encodedSbom, err := getEncodedSbom(sbomPath)
+	encodedSbom, err := getEncodedSbom(sbom)
 	if err != nil {
 		return err
 	}
 
-	req, err := createRequest(url, uploader.apiKey, projectId, encodedSbom)
+	req, err := createRequest(url, uploader.apiKey, sbom.ProjectId, encodedSbom)
 	if err != nil {
 		return err
 	}
@@ -40,12 +40,8 @@ func (uploader DependencyTrackUploader) UploadSBOM(sbomPath, projectId string) e
 	return nil
 }
 
-func getEncodedSbom(sbomPath string) (string, error) {
-	sbomData, err := os.ReadFile(sbomPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to read SBOM file: %v", err)
-	}
-	encodedSbom := base64.StdEncoding.EncodeToString(sbomData)
+func getEncodedSbom(sbom sbom.Sbom) (string, error) {
+	encodedSbom := base64.StdEncoding.EncodeToString(sbom.Data)
 	return encodedSbom, nil
 }
 

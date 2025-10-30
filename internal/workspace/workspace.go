@@ -1,7 +1,6 @@
 package workspace
 
 import (
-	"central-cyclone/internal/analyzer"
 	"central-cyclone/internal/gittool"
 	"fmt"
 	"os"
@@ -19,7 +18,6 @@ type localWorkspace struct {
 	reposPath  string
 	sbomsPath  string
 	gitCloner  gittool.Cloner
-	analyzer   analyzer.Analyzer
 	fs         FSHelper
 	namer      SBOMNamer
 	repoMapper RepoURLMapper
@@ -28,7 +26,6 @@ type localWorkspace struct {
 type Workspace interface {
 	Clear() error
 	CloneRepoToWorkspace(repoUrl string) (ClonedRepo, error)
-	AnalyzeRepoForTarget(repoUrl string, projectType string) (string, error)
 }
 
 func (w localWorkspace) CloneRepoToWorkspace(repoUrl string) (ClonedRepo, error) {
@@ -64,23 +61,6 @@ func (w localWorkspace) Clear() error {
 	return nil
 }
 
-func (w localWorkspace) AnalyzeRepoForTarget(repoUrl string, projectType string) (string, error) {
-	repoFolder, err := w.repoMapper.GetFolderName(repoUrl)
-	if err != nil {
-		return "", fmt.Errorf("failed to get folder name from repo URL: %w", err)
-	}
-	repoPath := filepath.Join(w.reposPath, repoFolder)
-
-	sbomPath := w.namer.GenerateSBOMPath(w.sbomsPath, repoFolder, projectType)
-
-	err = w.analyzer.AnalyzeProject(repoPath, projectType, sbomPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to analyze project: %w", err)
-	}
-
-	return sbomPath, nil
-}
-
 func CreateLocalWorkspace() (Workspace, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -107,7 +87,6 @@ func CreateLocalWorkspace() (Workspace, error) {
 		reposPath:  fullReposPath,
 		sbomsPath:  fullSbomsPath,
 		gitCloner:  gittool.LocalGitCloner{},
-		analyzer:   analyzer.CdxgenAnalyzer{},
 		fs:         fs,
 		namer:      DefaultSBOMNamer{},
 		repoMapper: DefaultRepoMapper{},

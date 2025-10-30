@@ -1,7 +1,9 @@
 package coordinator
 
 import (
+	"central-cyclone/internal/analyzer"
 	"central-cyclone/internal/config"
+	"central-cyclone/internal/sbom"
 	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
 	"fmt"
@@ -43,8 +45,8 @@ func analyzeRepos(repoSettings []config.Repo, workspaceHandler workspace.Workspa
 
 }
 
-func uploadSbom(uploader upload.Uploader, sbomPath string, projectId string) error {
-	err := uploader.UploadSBOM(sbomPath, projectId)
+func uploadSbom(uploader upload.Uploader, sbom sbom.Sbom) error {
+	err := uploader.UploadSBOM(sbom)
 	if err != nil {
 		fmt.Printf("Error uploading SBOM: %v\n", err)
 		return err
@@ -56,6 +58,8 @@ func uploadSbom(uploader upload.Uploader, sbomPath string, projectId string) err
 func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace, uploader upload.Uploader) error {
 	fmt.Printf("🔎 Analyzing repository: %s\n", repo.Url)
 
+	analyzer := analyzer.CdxgenAnalyzer{}
+
 	clonedRepo, err := workspaceHandler.CloneRepoToWorkspace(repo.Url)
 	if err != nil {
 		return fmt.Errorf("error cloning repository: %w", err)
@@ -63,13 +67,12 @@ func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace, upload
 
 	for _, t := range repo.Targets {
 		fmt.Printf("🔬 Analyzing repo for target: %s\n", t.Type)
-		sbomPath, err := workspaceHandler.AnalyzeRepoForTarget(clonedRepo.Path, t.Type)
-
+		sbom, err := analyzer.AnalyzeProject(clonedRepo, t)
 		if err != nil {
 			return fmt.Errorf("error analyzing project: %v", err)
 		}
 
-		err = uploadSbom(uploader, sbomPath, t.ProjectId)
+		err = uploadSbom(uploader, sbom)
 		if err != nil {
 			return err
 		}
