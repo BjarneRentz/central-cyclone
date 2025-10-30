@@ -2,6 +2,7 @@ package workspace
 
 import (
 	"central-cyclone/internal/config"
+	"central-cyclone/internal/sbom"
 	"fmt"
 	"path/filepath"
 )
@@ -12,14 +13,14 @@ type SBOMFileName struct {
 }
 
 type SBOMNamer interface {
-	GenerateSBOMPath(sbomsDir, folderName, projectType string) string
+	GenerateSBOMPath(sbomsDir string, sbom sbom.Sbom) string
 	MapSBOMToProject(settings *config.Settings, folderName, projectType string) (projectId string, found bool)
 }
 
 type DefaultSBOMNamer struct{}
 
-func (n DefaultSBOMNamer) GenerateSBOMPath(sbomsDir, folderName, projectType string) string {
-	sbomFileName := fmt.Sprintf("%s_sbom_%s.json", folderName, projectType)
+func (n DefaultSBOMNamer) GenerateSBOMPath(sbomsDir string, sbom sbom.Sbom) string {
+	sbomFileName := fmt.Sprintf("%s_sbom_%s.json", sbom.ProjectFolderName, sbom.ProjectType)
 	return filepath.Join(sbomsDir, sbomFileName)
 }
 

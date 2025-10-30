@@ -3,13 +3,13 @@ package workspace
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 )
 
 type FSHelper interface {
 	CreateFolderIfNotExists(path string) error
 	ListFiles(path string) ([]os.DirEntry, error)
 	RemoveAll(path string) error
+	WriteFile(path string, data []byte) error
 }
 
 type LocalFSHelper struct{}
@@ -38,6 +38,9 @@ func (h LocalFSHelper) RemoveAll(path string) error {
 	return nil
 }
 
-func ResolvePath(base string, parts ...string) string {
-	return filepath.Join(append([]string{base}, parts...)...)
+func (h LocalFSHelper) WriteFile(path string, data []byte) error {
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		return fmt.Errorf("failed to write file '%s': %w", path, err)
+	}
+	return nil
 }

@@ -2,6 +2,7 @@ package workspace
 
 import (
 	"central-cyclone/internal/gittool"
+	"central-cyclone/internal/sbom"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -26,6 +27,7 @@ type localWorkspace struct {
 type Workspace interface {
 	Clear() error
 	CloneRepoToWorkspace(repoUrl string) (ClonedRepo, error)
+	SaveSbom(sbom sbom.Sbom) error
 }
 
 func (w localWorkspace) CloneRepoToWorkspace(repoUrl string) (ClonedRepo, error) {
@@ -57,6 +59,14 @@ func (w localWorkspace) Clear() error {
 
 	if err := w.fs.RemoveAll(w.sbomsPath); err != nil {
 		return fmt.Errorf("failed to clear sboms directory: %w", err)
+	}
+	return nil
+}
+
+func (w localWorkspace) SaveSbom(sbom sbom.Sbom) error {
+	sbomPath := w.namer.GenerateSBOMPath(w.sbomsPath, sbom)
+	if err := w.fs.WriteFile(sbomPath, sbom.Data); err != nil {
+		return fmt.Errorf("failed to save SBOM to %s: %w", sbomPath, err)
 	}
 	return nil
 }

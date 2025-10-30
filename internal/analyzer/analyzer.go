@@ -33,8 +33,9 @@ func (a CdxgenAnalyzer) AnalyzeProject(repo workspace.ClonedRepo, target config.
 		return sbom.Sbom{}, fmt.Errorf("failed to read sbom file: %v", err)
 	}
 	return sbom.Sbom{
-		ProjectId:   target.ProjectId,
-		ProjectType: target.Type,
-		Data:        bytes,
+		ProjectId:         target.ProjectId,
+		ProjectType:       target.Type,
+		ProjectFolderName: repo.FolderName,
+		Data:              bytes,
 	}, nil
 }
