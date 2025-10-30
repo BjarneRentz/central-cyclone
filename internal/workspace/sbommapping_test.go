@@ -2,6 +2,7 @@ package workspace
 
 import (
 	"central-cyclone/internal/config"
+	"central-cyclone/internal/sbom"
 	"path/filepath"
 	"testing"
 )
@@ -9,7 +10,11 @@ import (
 func TestDefaultSBOMNamer_GenerateSBOMPath(t *testing.T) {
 	namer := DefaultSBOMNamer{}
 	sbomsDir := "/path/to/sboms"
-	got := namer.GenerateSBOMPath(sbomsDir, "org_repo", "go")
+	sbom := sbom.Sbom{
+		ProjectFolderName: "org_repo",
+		ProjectType:       "go",
+	}
+	got := namer.GenerateSBOMPath(sbomsDir, sbom)
 	want := filepath.Join(sbomsDir, "org_repo_sbom_go.json")
 	if got != want {
 		t.Errorf("GenerateSBOMPath() = %q, want %q", got, want)
