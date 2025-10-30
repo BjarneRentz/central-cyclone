@@ -56,14 +56,14 @@ func uploadSbom(uploader upload.Uploader, sbomPath string, projectId string) err
 func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace, uploader upload.Uploader) error {
 	fmt.Printf("🔎 Analyzing repository: %s\n", repo.Url)
 
-	repoPath, err := workspaceHandler.CloneRepoToWorkspace(repo.Url)
+	clonedRepo, err := workspaceHandler.CloneRepoToWorkspace(repo.Url)
 	if err != nil {
 		return fmt.Errorf("error cloning repository: %w", err)
 	}
 
 	for _, t := range repo.Targets {
 		fmt.Printf("🔬 Analyzing repo for target: %s\n", t.Type)
-		sbomPath, err := workspaceHandler.AnalyzeRepoForTarget(repoPath, t.Type)
+		sbomPath, err := workspaceHandler.AnalyzeRepoForTarget(clonedRepo.Path, t.Type)
 
 		if err != nil {
 			return fmt.Errorf("error analyzing project: %v", err)

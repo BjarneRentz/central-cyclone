@@ -27,26 +27,30 @@ type localWorkspace struct {
 
 type Workspace interface {
 	Clear() error
-	CloneRepoToWorkspace(repoUrl string) (string, error)
+	CloneRepoToWorkspace(repoUrl string) (ClonedRepo, error)
 	AnalyzeRepoForTarget(repoUrl string, projectType string) (string, error)
 }
 
-func (w localWorkspace) CloneRepoToWorkspace(repoUrl string) (string, error) {
+func (w localWorkspace) CloneRepoToWorkspace(repoUrl string) (ClonedRepo, error) {
 	folderName, err := w.repoMapper.GetFolderName(repoUrl)
 	if err != nil {
-		return "", fmt.Errorf("failed to get folder name from repo URL: %w", err)
+		return ClonedRepo{}, fmt.Errorf("failed to get folder name from repo URL: %w", err)
 	}
 	targetDir := filepath.Join(w.reposPath, folderName)
 
 	if err := w.fs.CreateFolderIfNotExists(targetDir); err != nil {
-		return "", fmt.Errorf("failed to create target dir: %w", err)
+		return ClonedRepo{}, fmt.Errorf("failed to create target dir: %w", err)
 	}
 
 	err = w.gitCloner.CloneRepoToDir(repoUrl, targetDir)
 	if err != nil {
-		return "", fmt.Errorf("failed to clone repo: %w", err)
+		return ClonedRepo{}, fmt.Errorf("failed to clone repo: %w", err)
 	}
-	return targetDir, nil
+	return ClonedRepo{
+		Path:       targetDir,
+		FolderName: folderName,
+		RepoUrl:    repoUrl,
+	}, nil
 }
 
 func (w localWorkspace) Clear() error {

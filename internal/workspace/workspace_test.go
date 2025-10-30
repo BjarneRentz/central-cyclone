@@ -85,7 +85,7 @@ func TestCloneRepoToWorkspace(t *testing.T) {
 			}
 
 			// Call CloneRepoToWorkspace
-			gotPath, err := w.CloneRepoToWorkspace(tt.repoURL)
+			clonedRepo, err := w.CloneRepoToWorkspace(tt.repoURL)
 
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
@@ -93,8 +93,8 @@ func TestCloneRepoToWorkspace(t *testing.T) {
 			}
 
 			// Verify the returned path matches expected
-			if gotPath != tt.wantPath {
-				t.Errorf("CloneRepoToWorkspace() returned path = %v, want %v", gotPath, tt.wantPath)
+			if clonedRepo.Path != tt.wantPath {
+				t.Errorf("CloneRepoToWorkspace() returned path = %v, want %v", clonedRepo, tt.wantPath)
 			}
 
 			// Verify that CloneRepoToDir was called with correct arguments
