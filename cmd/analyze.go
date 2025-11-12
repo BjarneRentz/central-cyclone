@@ -5,7 +5,7 @@ package cmd
 
 import (
 	"central-cyclone/internal/config"
-	"central-cyclone/internal/coordinator"
+	coordinator "central-cyclone/internal/handlers"
 	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
 	"fmt"

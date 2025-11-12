@@ -1,4 +1,4 @@
-package coordinator
+package handlers
 
 import (
 	"central-cyclone/internal/analyzer"
