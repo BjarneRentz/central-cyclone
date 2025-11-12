@@ -16,7 +16,7 @@ type LocalGitCloner struct {
 func (c LocalGitCloner) CloneRepoToDir(repoURL, targetDir string) error {
 	fmt.Printf("🛠️  Cloning repo %s into the workfolder\n", repoURL)
 	repoURL = adaptUrlIfTokenIsProvided(repoURL)
-	cmd := exec.Command("git", "clone", "--quiet", repoURL, targetDir)
+	cmd := exec.Command("git", "clone", "--quiet", "--depth", "1", repoURL, targetDir)
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
 

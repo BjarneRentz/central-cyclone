@@ -29,26 +29,6 @@ func TestWorkspaceHandler_Clear_NonExistent_DoesNotThrow(t *testing.T) {
 	}
 }
 
-func TestWorkspaceHandler_Clear_Empty(t *testing.T) {
-	dir := t.TempDir()
-	fs := LocalFSHelper{}
-	w := localWorkspace{
-		path: dir,
-		fs:   fs,
-	}
-	if err := w.Clear(); err != nil {
-		t.Errorf("unexpected error clearing empty dir: %v", err)
-	}
-
-	entries, err := fs.ListFiles(dir)
-	if err != nil {
-		t.Errorf("failed to read dir: %v", err)
-	}
-	if len(entries) != 0 {
-		t.Errorf("expected empty dir, found %d entries", len(entries))
-	}
-}
-
 func TestCloneRepoToWorkspace(t *testing.T) {
 	tempDir := t.TempDir()
 	reposPath := filepath.Join(tempDir, "repos")

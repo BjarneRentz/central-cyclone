@@ -32,8 +32,16 @@ func (h LocalFSHelper) ListFiles(path string) ([]os.DirEntry, error) {
 }
 
 func (h LocalFSHelper) RemoveAll(path string) error {
-	if err := os.RemoveAll(path); err != nil {
-		return fmt.Errorf("failed to remove '%s': %w", path, err)
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return fmt.Errorf("failed to read directory '%s': %w", path, err)
+	}
+
+	for _, entry := range entries {
+		fullPath := fmt.Sprintf("%s/%s", path, entry.Name())
+		if err := os.RemoveAll(fullPath); err != nil {
+			return fmt.Errorf("failed to remove '%s': %w", fullPath, err)
+		}
 	}
 	return nil
 }

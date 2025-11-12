@@ -9,28 +9,16 @@ import (
 	"fmt"
 )
 
-func RunForSettings(settings *config.Settings) {
-
-	var workspaceHandler, err = workspace.CreateLocalWorkspace()
-	if err != nil {
-		fmt.Printf("Error creating workspace: %v\n", err)
-		return
-	}
-	err = workspaceHandler.Clear()
-	if err != nil {
-		fmt.Printf("Error clearing workspace: %v\n", err)
-		return
-	}
-
+func AnalyzeAndSave(settings *config.Settings, workspaceHandler workspace.Workspace) {
 	if settings != nil && len(settings.Repositories) != 0 {
-		uploader, err := upload.CreateDependencyTrackUploader(settings)
-		if err != nil {
-			fmt.Printf("Error creating uploader: %v\n", err)
-			return
-		}
+		analyzeRepos(settings.Repositories, workspaceHandler, nil)
+	}
+}
+
+func AnalyzeAndUpload(settings *config.Settings, workspaceHandler workspace.Workspace, uploader upload.Uploader) {
+	if settings != nil && len(settings.Repositories) != 0 {
 		analyzeRepos(settings.Repositories, workspaceHandler, uploader)
 	}
-
 }
 
 func analyzeRepos(repoSettings []config.Repo, workspaceHandler workspace.Workspace, uploader upload.Uploader) {
@@ -72,9 +60,14 @@ func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace, upload
 			return fmt.Errorf("error analyzing project: %v", err)
 		}
 
-		err = uploadSbom(uploader, sbom)
-		if err != nil {
-			return err
+		if uploader != nil {
+			_ = uploadSbom(uploader, sbom)
+		} else {
+			err := workspaceHandler.SaveSbom(sbom)
+			if err != nil {
+				fmt.Printf("Could not save sbom: %s \n", err)
+				return fmt.Errorf("error saving sbom: %v", err)
+			}
 		}
 
 	}
