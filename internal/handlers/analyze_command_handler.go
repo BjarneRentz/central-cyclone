@@ -39,7 +39,6 @@ func uploadSbom(uploader upload.Uploader, sbom sbom.Sbom) error {
 		fmt.Printf("Error uploading SBOM: %v\n", err)
 		return err
 	}
-	fmt.Print("⬆️  Uploaded SBOM successfully\n")
 	return nil
 }
 

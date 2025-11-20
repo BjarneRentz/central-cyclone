@@ -37,6 +37,9 @@ func (uploader DependencyTrackUploader) UploadSBOM(sbom sbom.Sbom) error {
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("upload failed: status %d, body: %s", resp.StatusCode, string(body))
 	}
+
+	fmt.Printf("⬆️  Uploaded SBOM successfully \n")
+
 	return nil
 }
 
