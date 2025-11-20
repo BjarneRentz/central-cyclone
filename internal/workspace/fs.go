@@ -7,7 +7,7 @@ import (
 
 type FSHelper interface {
 	CreateFolderIfNotExists(path string) error
-	ListFiles(path string) ([]os.DirEntry, error)
+	ListFiles(path string) ([]string, error)
 	RemoveAll(path string) error
 	WriteFile(path string, data []byte) error
 }
@@ -23,12 +23,18 @@ func (h LocalFSHelper) CreateFolderIfNotExists(path string) error {
 	return nil
 }
 
-func (h LocalFSHelper) ListFiles(path string) ([]os.DirEntry, error) {
+func (h LocalFSHelper) ListFiles(path string) ([]string, error) {
 	entries, err := os.ReadDir(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read directory '%s': %w", path, err)
 	}
-	return entries, nil
+	var files []string
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			files = append(files, fmt.Sprintf("%s/%s", path, entry.Name()))
+		}
+	}
+	return files, nil
 }
 
 func (h LocalFSHelper) RemoveAll(path string) error {

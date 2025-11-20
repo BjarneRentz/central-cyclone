@@ -1,20 +1,15 @@
 package workspace
 
 import (
-	"central-cyclone/internal/config"
 	"central-cyclone/internal/sbom"
 	"fmt"
 	"path/filepath"
+	"strings"
 )
-
-type SBOMFileName struct {
-	FolderName  string // e.g., "org_repo"
-	ProjectType string // e.g., "go", "npm"
-}
 
 type SBOMNamer interface {
 	GenerateSBOMPath(sbomsDir string, sbom sbom.Sbom) string
-	MapSBOMToProject(settings *config.Settings, folderName, projectType string) (projectId string, found bool)
+	ParseFilename(filename string) (repoFolderName string, projectType string, err error)
 }
 
 type DefaultSBOMNamer struct{}
@@ -24,24 +19,16 @@ func (n DefaultSBOMNamer) GenerateSBOMPath(sbomsDir string, sbom sbom.Sbom) stri
 	return filepath.Join(sbomsDir, sbomFileName)
 }
 
-func (n DefaultSBOMNamer) MapSBOMToProject(settings *config.Settings, folderName, projectType string) (string, bool) {
-	mapper := DefaultRepoMapper{}
-	for _, repo := range settings.Repositories {
-		repoFolder, err := mapper.GetFolderName(repo.Url)
-		if err != nil {
-			continue
-		}
-		if repoFolder != folderName {
-			continue
-		}
+func (n DefaultSBOMNamer) ParseFilename(fileName string) (repoFolderName string, projectType string, err error) {
+	fileNameWithoutExt := strings.TrimSuffix(fileName, ".json")
 
-		// Find target with matching type
-		for _, target := range repo.Targets {
-			if target.Type == projectType {
-				return target.ProjectId, true
-			}
-		}
-		break // found repo but no matching target
+	parts := strings.Split(fileNameWithoutExt, "_sbom_")
+	if len(parts) != 2 {
+		return "", "", fmt.Errorf("invalid filename format: %s expected format: org_repo_sbom_type.json", fileName)
 	}
-	return "", false
+
+	folderName := parts[0]
+	projectType = parts[1]
+
+	return folderName, projectType, nil
 }

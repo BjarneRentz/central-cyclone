@@ -1,7 +1,6 @@
 package workspace
 
 import (
-	"central-cyclone/internal/config"
 	"central-cyclone/internal/sbom"
 	"path/filepath"
 	"testing"
@@ -21,67 +20,93 @@ func TestDefaultSBOMNamer_GenerateSBOMPath(t *testing.T) {
 	}
 }
 
-func TestSBOMNamer_MapSBOMToProject(t *testing.T) {
-	settings := &config.Settings{
-		Repositories: []config.Repo{
-			{
-				Url: "https://github.com/org/repo",
-				Targets: []config.RepoTarget{
-					{ProjectId: "proj-123", Type: "go"},
-					{ProjectId: "proj-456", Type: "npm"},
-				},
-			},
-		},
-	}
-
+func TestDefaultSBOMNamer_ParseFilename(t *testing.T) {
 	tests := []struct {
-		name       string
-		folderName string
-		projType   string
-		wantId     string
-		wantFound  bool
+		name            string
+		filename        string
+		wantFolderName  string
+		wantProjectType string
+		wantErr         bool
 	}{
 		{
-			name:       "matching repo and type",
-			folderName: "org_repo",
-			projType:   "go",
-			wantId:     "proj-123",
-			wantFound:  true,
+			name:            "valid filename with go project",
+			filename:        "org_repo_sbom_go.json",
+			wantFolderName:  "org_repo",
+			wantProjectType: "go",
+			wantErr:         false,
 		},
 		{
-			name:       "matching repo different type",
-			folderName: "org_repo",
-			projType:   "npm",
-			wantId:     "proj-456",
-			wantFound:  true,
+			name:            "valid filename with npm project",
+			filename:        "my_project_sbom_npm.json",
+			wantFolderName:  "my_project",
+			wantProjectType: "npm",
+			wantErr:         false,
 		},
 		{
-			name:       "unknown repo",
-			folderName: "unknown_repo",
-			projType:   "go",
-			wantId:     "",
-			wantFound:  false,
+			name:            "valid filename with python project",
+			filename:        "data_science_sbom_python.json",
+			wantFolderName:  "data_science",
+			wantProjectType: "python",
+			wantErr:         false,
 		},
 		{
-			name:       "known repo unknown type",
-			folderName: "org_repo",
-			projType:   "unknown",
-			wantId:     "",
-			wantFound:  false,
+			name:            "filename with underscore in folder name",
+			filename:        "my_org_my_repo_sbom_java.json",
+			wantFolderName:  "my_org_my_repo",
+			wantProjectType: "java",
+			wantErr:         false,
+		},
+		{
+			name:            "missing .json extension",
+			filename:        "org_repo_sbom_go",
+			wantFolderName:  "org_repo",
+			wantProjectType: "go",
+			wantErr:         false,
+		},
+		{
+			name:            "invalid format - missing _sbom_ separator",
+			filename:        "org_repo_go.json",
+			wantFolderName:  "",
+			wantProjectType: "",
+			wantErr:         true,
+		},
+		{
+			name:            "invalid format - multiple _sbom_ separators",
+			filename:        "org_repo_sbom_type_sbom_extra.json",
+			wantFolderName:  "",
+			wantProjectType: "",
+			wantErr:         true,
+		},
+		{
+			name:            "invalid format - only filename with no structure",
+			filename:        "random.json",
+			wantFolderName:  "",
+			wantProjectType: "",
+			wantErr:         true,
+		},
+		{
+			name:            "empty filename",
+			filename:        "",
+			wantFolderName:  "",
+			wantProjectType: "",
+			wantErr:         true,
 		},
 	}
-	namer := DefaultSBOMNamer{}
 
+	namer := DefaultSBOMNamer{}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotId, gotFound := namer.MapSBOMToProject(settings, tt.folderName, tt.projType)
-			if gotFound != tt.wantFound {
-				t.Errorf("MapSBOMToProject() found = %v, want %v", gotFound, tt.wantFound)
+			gotFolderName, gotProjectType, err := namer.ParseFilename(tt.filename)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ParseFilename() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
-			if gotId != tt.wantId {
-				t.Errorf("MapSBOMToProject() projectId = %q, want %q", gotId, tt.wantId)
+			if gotFolderName != tt.wantFolderName {
+				t.Errorf("ParseFilename() folderName = %q, want %q", gotFolderName, tt.wantFolderName)
+			}
+			if gotProjectType != tt.wantProjectType {
+				t.Errorf("ParseFilename() projectType = %q, want %q", gotProjectType, tt.wantProjectType)
 			}
 		})
 	}
-
 }
