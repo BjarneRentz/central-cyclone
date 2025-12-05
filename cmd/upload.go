@@ -43,7 +43,6 @@ var uploadCmd = &cobra.Command{
 				fmt.Printf("Error uplading sbom: %v\n", err)
 				continue
 			}
-			fmt.Printf("")
 		}
 	},
 }
