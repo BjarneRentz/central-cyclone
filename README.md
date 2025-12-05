@@ -8,7 +8,7 @@ Central Cyclone is a centralized SBOM (Software Bill of Materials) generation se
 - [Features](#features)
 - [Usage](#usage)
     - [Configuration](#configuration)
-    - [Command](#command)
+    - [Commands](#commands)
 - [Environment Variables](#environment-variables)
 - [Example](#example)
 - [Roadmap](#roadmap)
@@ -57,10 +57,40 @@ You can configure multiple *targets* for a single repository. This can be useful
 
 
 ### Commands
+
+
+#### Global Parameter
+
+|Parameter| Shortcut| Description|
+|-|-|-|
+|`--config`| `-c`| Path to the config file|
+
+
+
+#### Analyze configured repos
+The `analyze` command clones and analyzes all configured repositories for their defined targets. The resulting SBOMs are either saved under `~/.central-cyclone/workspace/sboms` or directly uploaded.
+
+
 ```
-analyze -c path-to-config
+analyze 
 ```
 - `-c path-to-config`: Path to your configuration JSON file.
+- `--upload`: Optional, uploads the resulting sboms instead of saving them.
+
+#### Upload
+The upload command can be used to upload the sbom files resulting from the analyze command. This can be useful in restricted network environments. You can use a two stage pipeline to first analyze the projects on a cloud agent and use a self hosted agent to upload the reuslting sboms.
+
+It is important, that Central Cyclone can only upload sboms created by Central Cyclone. Otherwise, Central Cyclone is not able to match the sbom file with the corresponding project.
+
+```
+upload
+```
+```
+analyze 
+```
+- `-c path-to-config`: Path to your configuration JSON file.
+- `--sboms-dir`: Required, path to dir containing all the sboms to upload.
+`
 
 ### Docker Image
 We provide an official docker image under the packages section of GitHub. It's recommended to use the docker image to run Central-Cyclone as it already includes all dependencies such as `git` and `cdxgen`.
@@ -69,6 +99,18 @@ To use it, create a config as stated above  and mount it into the container. Jus
 ```
 docker run \
 -v ./myConfig.json:/config/config.json \
+-e DEPENDENCYTRACK_API_KEY=MY_API_KEY \
+ghcr.io/bjarnerentz/central-cyclone:latest analyze -c /config/config.json
+```
+
+The easiest way to extract the sboms of the `analyze` command is to mount the workfolder of central cyclone.
+The workfolder is located under the home directory, for the current dockre image this is `\root`.
+
+
+```
+docker run \
+-v ./myConfig.json:/config/config.json \
+-v ./sboms:/root/.central-cyclone/workfolder/sboms \
 -e DEPENDENCYTRACK_API_KEY=MY_API_KEY \
 ghcr.io/bjarnerentz/central-cyclone:latest analyze -c /config/config.json
 ```
