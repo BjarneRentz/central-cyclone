@@ -39,7 +39,8 @@ Define your targets and settings in a JSON config file. See `exampleConfig.json`
             "targets": [
                 {
                     "projectId": "2fbbfb99-132e-4e8d-b253-4aa8d58aa505",
-                    "type": "node"
+                    "type": "node",
+                    "directory": "web"
                 }, {
                     "projectId": "2fbbfb99-132e-3d8d-b253-4aa8d58aa505",
                     "type": "java"
@@ -54,7 +55,7 @@ Define your targets and settings in a JSON config file. See `exampleConfig.json`
 The `dependencyTrack` section in your configuration file is **mandatory**, as is setting the `DEPENDENCYTRACK_API_KEY` environment variable. For more details, see the  [Environment Variables](#environment-variables) section.
 
 You can configure multiple *targets* for a single repository. This can be useful for a monorepo, where different programming languages or projects are managed under a single repository. You can find all supported targets in the [Cdxgen documentation](https://cyclonedx.github.io/cdxgen/#/PROJECT_TYPES).
-
+If you project contains multiple subprojects of the same type. You can specify the subdir within the repo using the optional `directory` property.
 
 ### Commands
 
