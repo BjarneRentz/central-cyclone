@@ -38,6 +38,11 @@ func (h LocalFSHelper) ListFiles(path string) ([]string, error) {
 }
 
 func (h LocalFSHelper) RemoveAll(path string) error {
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return nil
+	}
+
 	entries, err := os.ReadDir(path)
 	if err != nil {
 		return fmt.Errorf("failed to read directory '%s': %w", path, err)

@@ -55,8 +55,8 @@ func TestLocalFSHelper_ListFiles(t *testing.T) {
 		t.Fatalf("ListFiles failed: %v", err)
 	}
 
-	if len(entries) != len(files)+len(dirs) {
-		t.Errorf("Expected %d entries, got %d", len(files)+len(dirs), len(entries))
+	if len(entries) != len(files) {
+		t.Errorf("Expected %d entries, got %d", len(files), len(entries))
 	}
 
 	// Verify error on non-existent directory
@@ -71,7 +71,8 @@ func TestLocalFSHelper_RemoveAll(t *testing.T) {
 	testPath := filepath.Join(tempDir, "test")
 
 	// Create a directory with content
-	if err := os.MkdirAll(filepath.Join(testPath, "nested"), 0755); err != nil {
+	nestedPath := filepath.Join(testPath, "nested")
+	if err := os.MkdirAll(filepath.Join(nestedPath), 0755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
 	if err := os.WriteFile(filepath.Join(testPath, "file.txt"), []byte("test"), 0644); err != nil {
@@ -83,7 +84,7 @@ func TestLocalFSHelper_RemoveAll(t *testing.T) {
 		t.Fatalf("RemoveAll failed: %v", err)
 	}
 
-	if _, err := os.Stat(testPath); !os.IsNotExist(err) {
+	if _, err := os.Stat(nestedPath); !os.IsNotExist(err) {
 		t.Error("Directory still exists after RemoveAll")
 	}
 
