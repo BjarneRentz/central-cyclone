@@ -2,71 +2,74 @@ package workspace
 
 import (
 	"central-cyclone/internal/gittool"
+	"central-cyclone/internal/sbom"
 	"fmt"
-	"net/url"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
-const workspacePath = "workfolder"
+const (
+	workspacePath = "workfolder"
+	repoFolder    = "repos"
+	sbomFolder    = "sboms"
+)
 
 type localWorkspace struct {
-	path      string
-	gitCloner gittool.Cloner
+	path       string
+	reposPath  string
+	sbomsPath  string
+	gitCloner  gittool.Cloner
+	fs         FSHelper
+	namer      SBOMNamer
+	repoMapper RepoURLMapper
 }
 
 type Workspace interface {
 	Clear() error
-	List() ([]string, error)
-	CloneRepoToWorkspace(repoUrl string) (string, error)
+	CloneRepoToWorkspace(repoUrl string) (ClonedRepo, error)
+	SaveSbom(sbom sbom.Sbom) error
 }
 
-func (w localWorkspace) CloneRepoToWorkspace(repoUrl string) (string, error) {
-	folderName, err := getFolderNameForRepoUrl(repoUrl)
+func (w localWorkspace) CloneRepoToWorkspace(repoUrl string) (ClonedRepo, error) {
+	folderName, err := w.repoMapper.GetFolderName(repoUrl)
 	if err != nil {
-		return "", fmt.Errorf("failed to get folder name from repo URL: %w", err)
+		return ClonedRepo{}, fmt.Errorf("failed to get folder name from repo URL: %w", err)
 	}
-	targetDir := filepath.Join(w.path, folderName)
-	if _, err := os.Stat(targetDir); os.IsNotExist(err) {
-		if err := os.MkdirAll(targetDir, 0755); err != nil {
-			return "", fmt.Errorf("failed to create target dir: %w", err)
-		}
+	targetDir := filepath.Join(w.reposPath, folderName)
+
+	if err := w.fs.CreateFolderIfNotExists(targetDir); err != nil {
+		return ClonedRepo{}, fmt.Errorf("failed to create target dir: %w", err)
 	}
 
 	err = w.gitCloner.CloneRepoToDir(repoUrl, targetDir)
 	if err != nil {
-		return "", fmt.Errorf("failed to clone repo: %w", err)
+		return ClonedRepo{}, fmt.Errorf("failed to clone repo: %w", err)
 	}
-	return targetDir, nil
+	return ClonedRepo{
+		Path:       targetDir,
+		FolderName: folderName,
+		RepoUrl:    repoUrl,
+	}, nil
 }
 
-// Removes all files and folders in the workspace directory
 func (w localWorkspace) Clear() error {
-	entries, err := os.ReadDir(w.path)
-	if err != nil {
-		return fmt.Errorf("failed to read workspace directory: %w", err)
+	if err := w.fs.RemoveAll(w.reposPath); err != nil {
+		return fmt.Errorf("failed to clear repos directory: %w", err)
 	}
-	for _, entry := range entries {
-		entryPath := filepath.Join(w.path, entry.Name())
-		if err := os.RemoveAll(entryPath); err != nil {
-			return fmt.Errorf("failed to remove '%s': %w", entryPath, err)
-		}
+
+	if err := w.fs.RemoveAll(w.sbomsPath); err != nil {
+		return fmt.Errorf("failed to clear sboms directory: %w", err)
 	}
 	return nil
 }
 
-func (w localWorkspace) List() ([]string, error) {
-	entries, err := os.ReadDir(w.path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read workspace directory: %w", err)
+func (w localWorkspace) SaveSbom(sbom sbom.Sbom) error {
+	sbomPath := w.namer.GenerateSBOMPath(w.sbomsPath, sbom)
+	if err := w.fs.WriteFile(sbomPath, sbom.Data); err != nil {
+		return fmt.Errorf("failed to save SBOM to %s: %w", sbomPath, err)
 	}
-
-	var files []string
-	for _, entry := range entries {
-		files = append(files, entry.Name())
-	}
-	return files, nil
+	fmt.Printf("💾 Saved SBOM \n")
+	return nil
 }
 
 func CreateLocalWorkspace() (Workspace, error) {
@@ -76,58 +79,27 @@ func CreateLocalWorkspace() (Workspace, error) {
 	}
 	fullWorkFolderPath := filepath.Join(homeDir, ".central-cyclone", workspacePath)
 
-	if _, err := os.Stat(fullWorkFolderPath); os.IsNotExist(err) {
-		fmt.Printf("Creating work directory: %s\n", fullWorkFolderPath)
-		if err := os.MkdirAll(fullWorkFolderPath, 0755); err != nil {
-			return nil, fmt.Errorf("failed to create work folder '%s': %w", fullWorkFolderPath, err)
-		}
-	} else if err != nil {
-		return nil, fmt.Errorf("failed to check work folder '%s': %w", fullWorkFolderPath, err)
-	} else {
-		fmt.Printf("Work directory '%s' already exists.\n", fullWorkFolderPath)
+	fs := LocalFSHelper{}
+	if err := fs.CreateFolderIfNotExists(fullWorkFolderPath); err != nil {
+		return nil, fmt.Errorf("could not create workfolder: %w", err)
 	}
 
+	fullReposPath := filepath.Join(fullWorkFolderPath, repoFolder)
+	if err := fs.CreateFolderIfNotExists(fullReposPath); err != nil {
+		return nil, fmt.Errorf("could not create repos folder: %w", err)
+	}
+
+	fullSbomsPath := filepath.Join(fullWorkFolderPath, sbomFolder)
+	if err := fs.CreateFolderIfNotExists(fullSbomsPath); err != nil {
+		return nil, fmt.Errorf("could not create sboms folder: %w", err)
+	}
 	return localWorkspace{
-		path:      fullWorkFolderPath,
-		gitCloner: gittool.LocalGitCloner{},
+		path:       fullWorkFolderPath,
+		reposPath:  fullReposPath,
+		sbomsPath:  fullSbomsPath,
+		gitCloner:  gittool.LocalGitCloner{},
+		fs:         fs,
+		namer:      DefaultSBOMNamer{},
+		repoMapper: DefaultRepoMapper{},
 	}, nil
-}
-
-func getFolderNameForRepoUrl(repoUrl string) (string, error) {
-	parsedUrl, err := url.Parse(repoUrl)
-	if err != nil {
-		return "", fmt.Errorf("invalid repo URL: %w", err)
-	}
-
-	path := strings.TrimSuffix(parsedUrl.Path, ".git")
-	pathParts := strings.Split(path, "/")
-
-	// Remove leading slash if present
-	if len(pathParts) > 0 && pathParts[0] == "" {
-		pathParts = pathParts[1:]
-	}
-
-	switch parsedUrl.Host {
-	case "dev.azure.com":
-		// Azure DevOps: /org/project/_git/repo
-		for i, part := range pathParts {
-			if part == "_git" && i > 0 && i < len(pathParts)-1 {
-				org := pathParts[0]
-				project := pathParts[1]
-				repo := pathParts[i+1]
-				folderName := fmt.Sprintf("%s_%s_%s", org, project, repo)
-				return folderName, nil
-			}
-		}
-	default:
-		// GitHub: /org/repo
-		if len(pathParts) >= 2 {
-			org := pathParts[len(pathParts)-2]
-			repo := pathParts[len(pathParts)-1]
-			folderName := fmt.Sprintf("%s_%s", org, repo)
-			return folderName, nil
-		}
-	}
-
-	return "", fmt.Errorf("unexpected repo URL format: %s", repoUrl)
 }

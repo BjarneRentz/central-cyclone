@@ -2,30 +2,26 @@ package upload
 
 import (
 	"bytes"
+	"central-cyclone/internal/sbom"
 	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 )
 
 type DependencyTrackUploader struct {
-	ServerURL string
+	serverURL string
+	apiKey    string
 }
 
-func (uploader DependencyTrackUploader) UploadSBOM(sbomPath, projectId string) error {
-	apiKey := os.Getenv("DEPENDENCYTRACK_API_KEY")
-	if apiKey == "" {
-		return fmt.Errorf("DEPENDENCYTRACK_API_KEY environment variable is not set")
-	}
-
-	url := uploader.ServerURL + "/api/v1/bom"
-	encodedSbom, err := getEncodedSbom(sbomPath)
+func (uploader DependencyTrackUploader) UploadSBOM(sbom sbom.Sbom) error {
+	url := uploader.serverURL + "/api/v1/bom"
+	encodedSbom, err := getEncodedSbom(sbom)
 	if err != nil {
 		return err
 	}
 
-	req, err := createRequest(url, apiKey, projectId, encodedSbom)
+	req, err := createRequest(url, uploader.apiKey, sbom.ProjectId, encodedSbom)
 	if err != nil {
 		return err
 	}
@@ -41,15 +37,14 @@ func (uploader DependencyTrackUploader) UploadSBOM(sbomPath, projectId string) e
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("upload failed: status %d, body: %s", resp.StatusCode, string(body))
 	}
+
+	fmt.Printf("⬆️  Uploaded SBOM successfully \n")
+
 	return nil
 }
 
-func getEncodedSbom(sbomPath string) (string, error) {
-	sbomData, err := os.ReadFile(sbomPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to read SBOM file: %v", err)
-	}
-	encodedSbom := base64.StdEncoding.EncodeToString(sbomData)
+func getEncodedSbom(sbom sbom.Sbom) (string, error) {
+	encodedSbom := base64.StdEncoding.EncodeToString(sbom.Data)
 	return encodedSbom, nil
 }
 
