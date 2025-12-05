@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 type Analyzer interface {
@@ -19,7 +20,13 @@ func (a CdxgenAnalyzer) AnalyzeProject(repo workspace.ClonedRepo, target config.
 
 	fileName := fmt.Sprintf("sbom_%s.json", target.Type)
 
-	cmd := exec.Command("cdxgen", "--fail-on-error", "-t", target.Type, "-o", fileName, repo.Path)
+	scanPath := repo.Path
+
+	if target.Directory != nil {
+		scanPath = filepath.Join(repo.Path, *target.Directory)
+	}
+
+	cmd := exec.Command("cdxgen", "--fail-on-error", "-t", target.Type, "-o", fileName, scanPath)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Printf("cdxgen failed with %s \n", string(output))

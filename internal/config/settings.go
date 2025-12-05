@@ -17,8 +17,9 @@ type Repo struct {
 }
 
 type RepoTarget struct {
-	ProjectId string `json:"projectId"`
-	Type      string `json:"type"`
+	ProjectId string  `json:"projectId"`
+	Type      string  `json:"type"`
+	Directory *string `json:"directory"`
 }
 
 type DependencyTrackConfig struct {
