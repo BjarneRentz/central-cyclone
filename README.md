@@ -3,6 +3,8 @@
 
 Central Cyclone is a centralized SBOM (Software Bill of Materials) generation service built around [cdxgen](https://github.com/CycloneDX/cdxgen). It can be configured to analyze and upload the results for multiple repos and multiple targets, so you do not have to create a pipeline for each repository. Similar to how Renovate can be configured to manage multiple repositories.
 
+[<img  src="assets/Central-Cyclone.drawio.svg">]()
+
 
 ## Table of Contents
 - [Features](#features)
