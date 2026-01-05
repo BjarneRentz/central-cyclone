@@ -4,6 +4,7 @@ import (
 	"central-cyclone/internal/config"
 	"central-cyclone/internal/sbom"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,6 +27,8 @@ func CreateLocalReadonlySbomWorkspace(path string, sbomNamer SBOMNamer, repoMapp
 
 // Note: The current behavior is not the best in terms of performance, as it reads all SBOMs at once.
 // In the future, we could inject an uploader, such that the garbarge collector can come in earlier.
+// Or have an own file format / json format that holds all required informations. This would allow us to just read and upload file after file
+// without requiring the config.
 func (w LocalReadonlySbomWorkspace) ReadSboms(repos []config.Repo) ([]sbom.Sbom, error) {
 	repoMap := make(map[string]config.Repo) // Map folder name -> Repo
 
@@ -46,7 +49,7 @@ func (w LocalReadonlySbomWorkspace) ReadSboms(repos []config.Repo) ([]sbom.Sbom,
 
 	for _, filePath := range filePaths {
 		if !strings.HasSuffix(filePath, ".json") {
-			fmt.Printf("Skipping non-JSON file: %s\n", filePath)
+			slog.Info("Skipping non-JSON file", "file", filePath)
 			continue
 		}
 
@@ -54,13 +57,13 @@ func (w LocalReadonlySbomWorkspace) ReadSboms(repos []config.Repo) ([]sbom.Sbom,
 
 		repoFolderName, projectType, err := w.sbomNamer.ParseFilename(fileName)
 		if err != nil {
-			fmt.Printf("Warning: %v\n", err)
+			slog.Error("Failed to parse SBOM filename", "filename", fileName, "error", err)
 			continue
 		}
 
 		repo, exists := repoMap[repoFolderName]
 		if !exists {
-			fmt.Printf("Warning: No repo found for folder %s (file: %s)\n", repoFolderName, filePath)
+			slog.Warn("No configured repo found for folder", "folder", repoFolderName, "file", filePath)
 			continue
 		}
 
@@ -73,7 +76,7 @@ func (w LocalReadonlySbomWorkspace) ReadSboms(repos []config.Repo) ([]sbom.Sbom,
 		}
 
 		if projectId == "" {
-			fmt.Printf("Warning: No target found for type %s in repo %s (file: %s)\n", projectType, repoFolderName, filePath)
+			slog.Warn("No target found for type", "type", projectType, "repo", repoFolderName, "file", filePath)
 			continue
 		}
 

@@ -4,7 +4,7 @@ import (
 	"central-cyclone/internal/config"
 	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
-	"fmt"
+	"log/slog"
 
 	"github.com/spf13/cobra"
 )
@@ -17,7 +17,7 @@ var uploadCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		config, err := config.LoadFromFile(cfgFile)
 		if err != nil {
-			fmt.Printf("Error loading configuration: %v\n", err)
+			slog.Error("Error loading configuration", "error", err)
 			return
 		}
 		sbomNamer := workspace.DefaultSBOMNamer{}
@@ -27,20 +27,20 @@ var uploadCmd = &cobra.Command{
 
 		sboms, err := readonlyWorkspace.ReadSboms(config.Repositories)
 		if err != nil {
-			fmt.Printf("Error reading SBOMs: %v\n", err)
+			slog.Error("Error reading SBOMs", "error", err)
 			return
 		}
 
 		uploader, err := upload.CreateDependencyTrackUploader(config)
 		if err != nil {
-			fmt.Printf("Error creating uploader: %v\n", err)
+			slog.Error("Error creating uploader", "error", err)
 			return
 		}
 
 		for _, sbom := range sboms {
 			err = uploader.UploadSBOM(sbom)
 			if err != nil {
-				fmt.Printf("Error uplading sbom: %v\n", err)
+				slog.Error("Error uploading SBOM", "error", err)
 				continue
 			}
 		}

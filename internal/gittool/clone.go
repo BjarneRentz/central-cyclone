@@ -1,7 +1,7 @@
 package gittool
 
 import (
-	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 )
@@ -14,7 +14,7 @@ type LocalGitCloner struct {
 }
 
 func (c LocalGitCloner) CloneRepoToDir(repoURL, targetDir string) error {
-	fmt.Printf("🛠️  Cloning repo %s into the workfolder\n", repoURL)
+	slog.Info("🛠️  Cloning repo into the workfolder", "repo", repoURL)
 	repoURL = adaptUrlIfTokenIsProvided(repoURL)
 	cmd := exec.Command("git", "clone", "--quiet", "--depth", "1", repoURL, targetDir)
 	cmd.Stderr = os.Stderr

@@ -8,7 +8,7 @@ import (
 	coordinator "central-cyclone/internal/handlers"
 	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
-	"fmt"
+	"log/slog"
 
 	"github.com/spf13/cobra"
 )
@@ -24,7 +24,7 @@ var analyzeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		config, err := config.LoadFromFile(cfgFile)
 		if err != nil {
-			fmt.Printf("Error loading configuration: %v\n", err)
+			slog.Error("Could not read config file:", "error", err)
 			return
 		}
 		runAnalyzeCommand(config)
@@ -42,19 +42,19 @@ func runAnalyzeCommand(settings *config.Settings) {
 
 	workspaceHandler, err := workspace.CreateLocalWorkspace()
 	if err != nil {
-		fmt.Printf("Error creating workspace: %v\n", err)
+		slog.Error("Error creating workspace", "error", err)
 		return
 	}
 	err = workspaceHandler.Clear()
 	if err != nil {
-		fmt.Printf("Error clearing workspace: %v\n", err)
+		slog.Error("Error clearing workspace", "error", err)
 		return
 	}
 
 	if uploadSboms {
 		uploader, err := upload.CreateDependencyTrackUploader(settings)
 		if err != nil {
-			fmt.Printf("Error creating uploader: %v\n", err)
+			slog.Error("Error creating uploader", "error", err)
 			return
 		}
 		coordinator.AnalyzeAndUpload(settings, workspaceHandler, uploader)
