@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 )
 
@@ -38,7 +39,7 @@ func (uploader DependencyTrackUploader) UploadSBOM(sbom sbom.Sbom) error {
 		return fmt.Errorf("upload failed: status %d, body: %s", resp.StatusCode, string(body))
 	}
 
-	fmt.Printf("⬆️  Uploaded SBOM successfully \n")
+	slog.Info("⬆️  Uploaded SBOM successfully")
 
 	return nil
 }

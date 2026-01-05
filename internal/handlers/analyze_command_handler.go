@@ -7,6 +7,7 @@ import (
 	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
 	"fmt"
+	"log/slog"
 )
 
 func AnalyzeAndSave(settings *config.Settings, workspaceHandler workspace.Workspace) {
@@ -22,12 +23,12 @@ func AnalyzeAndUpload(settings *config.Settings, workspaceHandler workspace.Work
 }
 
 func analyzeRepos(repoSettings []config.Repo, workspaceHandler workspace.Workspace, uploader upload.Uploader) {
-	fmt.Printf("Found %d repositories to analyze 🚀\n", len(repoSettings))
+	slog.Info("Found repositories to analyze", "count", len(repoSettings))
 
 	for _, repo := range repoSettings {
 		err := analyzeRepo(&repo, workspaceHandler, uploader)
 		if err != nil {
-			fmt.Printf("Error analyzing repo %s: %v\n", repo.Url, err)
+			slog.Error("Could not analyze repo", "repo", repo.Url, "error", err)
 		}
 	}
 
@@ -36,24 +37,25 @@ func analyzeRepos(repoSettings []config.Repo, workspaceHandler workspace.Workspa
 func uploadSbom(uploader upload.Uploader, sbom sbom.Sbom) error {
 	err := uploader.UploadSBOM(sbom)
 	if err != nil {
-		fmt.Printf("Error uploading SBOM: %v\n", err)
+		slog.Error("Could not upload SBOM", "error", err)
 		return err
 	}
 	return nil
 }
 
 func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace, uploader upload.Uploader) error {
-	fmt.Printf("🔎 Analyzing repository: %s\n", repo.Url)
+	slog.Info("🔎 Analyzing repository", "repo", repo.Url)
 
 	analyzer := analyzer.CdxgenAnalyzer{}
 
 	clonedRepo, err := workspaceHandler.CloneRepoToWorkspace(repo.Url)
 	if err != nil {
+		slog.Error("Could not clone repository", "repo", repo.Url, "error", err)
 		return fmt.Errorf("error cloning repository: %w", err)
 	}
 
 	for _, t := range repo.Targets {
-		fmt.Printf("🔬 Analyzing repo for target: %s\n", t.Type)
+		slog.Info("🔬 Analyzing repo", "repo", repo.Url, "target", t.Type)
 		sbom, err := analyzer.AnalyzeProject(clonedRepo, t)
 		if err != nil {
 			return fmt.Errorf("error analyzing project: %v", err)
@@ -64,12 +66,12 @@ func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace, upload
 		} else {
 			err := workspaceHandler.SaveSbom(sbom)
 			if err != nil {
-				fmt.Printf("Could not save sbom: %s \n", err)
+				slog.Error("Could not save sbom", "error", err)
 				return fmt.Errorf("error saving sbom: %v", err)
 			}
 		}
 
 	}
-	fmt.Printf("✅ Finished analyzing repo %s\n", repo.Url)
+	slog.Info("✅ Finished analyzing repo", "repo", repo.Url)
 	return nil
 }

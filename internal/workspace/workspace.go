@@ -4,6 +4,7 @@ import (
 	"central-cyclone/internal/gittool"
 	"central-cyclone/internal/sbom"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 )
@@ -68,7 +69,7 @@ func (w localWorkspace) SaveSbom(sbom sbom.Sbom) error {
 	if err := w.fs.WriteFile(sbomPath, sbom.Data); err != nil {
 		return fmt.Errorf("failed to save SBOM to %s: %w", sbomPath, err)
 	}
-	fmt.Printf("💾 Saved SBOM \n")
+	slog.Info("💾 Saved SBOM", "path", sbomPath)
 	return nil
 }
 

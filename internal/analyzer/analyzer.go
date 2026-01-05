@@ -5,6 +5,7 @@ import (
 	"central-cyclone/internal/sbom"
 	"central-cyclone/internal/workspace"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,7 +30,7 @@ func (a CdxgenAnalyzer) AnalyzeProject(repo workspace.ClonedRepo, target config.
 	cmd := exec.Command("cdxgen", "--fail-on-error", "-t", target.Type, "-o", fileName, scanPath)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("cdxgen failed with %s \n", string(output))
+		slog.Error("Creating sbom with cdxgen failed: ", "output", string(output), "error", err)
 		return sbom.Sbom{}, fmt.Errorf("cdxgen failed: %v\nOutput: %s", err, string(output))
 	}
 
@@ -37,6 +38,7 @@ func (a CdxgenAnalyzer) AnalyzeProject(repo workspace.ClonedRepo, target config.
 	os.Remove(fileName)
 
 	if err != nil {
+		slog.Error("Failed to read created sbom file", "path", fileName)
 		return sbom.Sbom{}, fmt.Errorf("failed to read sbom file: %v", err)
 	}
 	return sbom.Sbom{
