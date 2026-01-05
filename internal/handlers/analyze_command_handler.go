@@ -50,7 +50,7 @@ func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace, upload
 
 	clonedRepo, err := workspaceHandler.CloneRepoToWorkspace(repo.Url)
 	if err != nil {
-		fmt.Errorf("Could not clone repository", "repo", repo.Url, "error", err)
+		slog.Error("Could not clone repository", "repo", repo.Url, "error", err)
 		return fmt.Errorf("error cloning repository: %w", err)
 	}
 
