@@ -1,7 +1,7 @@
-package dt
+package dtrack
 
 import (
-	"central-cyclone/cmd/dt/projects"
+	"central-cyclone/cmd/dtrack/projects"
 
 	"github.com/spf13/cobra"
 )

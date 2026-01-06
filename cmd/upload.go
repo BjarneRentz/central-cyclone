@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"central-cyclone/cmd/extensions"
 	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
 	"log/slog"
@@ -14,7 +15,7 @@ var uploadCmd = &cobra.Command{
 	Use:   "upload",
 	Short: "Uploads SBOMs from a specified folder to DependencyTrack",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		settings, err := GetSettings(cmd)
+		settings, err := extensions.GetSettings(cmd)
 		if err != nil {
 			slog.Error("Could not get settings from context", "error", err)
 			return err
@@ -49,7 +50,7 @@ var uploadCmd = &cobra.Command{
 }
 
 func init() {
-	requireConfig(uploadCmd)
+	extensions.RequireConfig(uploadCmd)
 	uploadCmd.Flags().StringP("config", "c", "./config.json", "Path to the configuration file")
 	uploadCmd.Flags().StringVar(&sbomFolder, "sboms-dir", "/sboms", "Directory containg the sboms to upload")
 }

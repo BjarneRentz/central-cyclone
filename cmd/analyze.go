@@ -4,7 +4,8 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"central-cyclone/internal/config"
+	"central-cyclone/cmd/extensions"
+	config "central-cyclone/internal/config"
 	coordinator "central-cyclone/internal/handlers"
 	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
@@ -21,7 +22,7 @@ var analyzeCmd = &cobra.Command{
 	Short: "Analyzes all configured resources and creates SBOMs",
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-		settings, err := GetSettings(cmd)
+		settings, err := extensions.GetSettings(cmd)
 		if err != nil {
 			slog.Error("Could not get settings from context", "error", err)
 			return err
@@ -32,7 +33,7 @@ var analyzeCmd = &cobra.Command{
 }
 
 func init() {
-	requireConfig(analyzeCmd)
+	extensions.RequireConfig(analyzeCmd)
 	analyzeCmd.Flags().BoolVar(&uploadSboms, "upload", false, "Upload SBOMs to DependencyTrack after generation")
 }
 

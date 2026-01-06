@@ -1,4 +1,4 @@
-package cmd
+package extensions
 
 import (
 	"central-cyclone/internal/config"
@@ -16,7 +16,7 @@ const settingsKey ctxKey = "settings"
 // requireConfig sets a PreRunE on the provided command which loads the
 // configuration file (using the "config" flag) and stores the parsed
 // settings in the command's context.
-func requireConfig(cmd *cobra.Command) {
+func RequireConfig(cmd *cobra.Command) {
 	prev := cmd.PreRunE
 	cmd.PreRunE = func(cmd *cobra.Command, args []string) error {
 		if prev != nil {

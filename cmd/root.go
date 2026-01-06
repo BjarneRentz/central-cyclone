@@ -4,7 +4,7 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"central-cyclone/cmd/dt"
+	"central-cyclone/cmd/dtrack"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -30,7 +30,7 @@ func init() {
 
 	rootCmd.PersistentFlags().StringP("config", "c", "./config.json", "Path to the configuration file")
 
-	rootCmd.AddCommand(dt.DtCmd)
+	rootCmd.AddCommand(dtrack.DtCmd)
 	rootCmd.AddCommand(analyzeCmd)
 	rootCmd.AddCommand(uploadCmd)
 }
