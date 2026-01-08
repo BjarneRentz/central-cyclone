@@ -33,7 +33,7 @@ var syncprojectsCmd = &cobra.Command{
 
 		projectsSyncer := dt.ProjectSyncer{Client: dtClient}
 
-		projectsSyncer.SyncProjects(context.TODO(), projects)
+		projectsSyncer.SyncProjects(context.Background(), projects)
 
 		return nil
 	},

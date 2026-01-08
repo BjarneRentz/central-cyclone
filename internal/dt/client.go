@@ -9,6 +9,13 @@ import (
 	dtrack "github.com/DependencyTrack/client-go"
 )
 
+// Client is the interface used by consumers of the Dependency-Track client. It
+// allows tests to inject a fake implementation when needed.
+type Client interface {
+	CreateProject(ctx context.Context, project dtrack.Project) (dtrack.Project, error)
+	GetProject(ctx context.Context, name string, version string) (dtrack.Project, error)
+}
+
 type DTrackClient struct {
 	client *dtrack.Client
 }

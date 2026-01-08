@@ -10,7 +10,7 @@ import (
 )
 
 type ProjectSyncer struct {
-	Client *DTrackClient
+	Client Client
 }
 
 func (ps *ProjectSyncer) SyncProjects(ctx context.Context, projects []config.Project) error {
