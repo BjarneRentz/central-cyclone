@@ -16,5 +16,18 @@
             ]
             
         }
+    ],
+    "applications": [
+        {
+            "name": "Immich",
+            "type": "node",
+            "projects": [
+                {
+                    "name": "immich-web",
+                    "version": "latest",
+                    "isLatest": true
+                }
+            ]
+        }
     ]
 }

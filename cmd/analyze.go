@@ -4,7 +4,8 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"central-cyclone/internal/config"
+	"central-cyclone/cmd/extensions"
+	config "central-cyclone/internal/config"
 	coordinator "central-cyclone/internal/handlers"
 	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
@@ -13,7 +14,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var cfgFile string
 var uploadSboms bool
 
 // analyzeCmd represents the analyze command
@@ -21,20 +21,19 @@ var analyzeCmd = &cobra.Command{
 	Use:   "analyze",
 	Short: "Analyzes all configured resources and creates SBOMs",
 
-	Run: func(cmd *cobra.Command, args []string) {
-		config, err := config.LoadFromFile(cfgFile)
+	RunE: func(cmd *cobra.Command, args []string) error {
+		settings, err := extensions.GetSettings(cmd)
 		if err != nil {
-			slog.Error("Could not read config file:", "error", err)
-			return
+			slog.Error("Could not get settings from context", "error", err)
+			return err
 		}
-		runAnalyzeCommand(config)
+		runAnalyzeCommand(settings)
+		return nil
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(analyzeCmd)
-
-	analyzeCmd.Flags().StringVarP(&cfgFile, "config", "c", "./config.json", "Path to the configuration file")
+	extensions.RequireConfig(analyzeCmd)
 	analyzeCmd.Flags().BoolVar(&uploadSboms, "upload", false, "Upload SBOMs to DependencyTrack after generation")
 }
 

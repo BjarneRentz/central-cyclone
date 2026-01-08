@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"central-cyclone/internal/config"
+	"central-cyclone/cmd/extensions"
 	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
 	"log/slog"
@@ -14,27 +14,28 @@ var sbomFolder string
 var uploadCmd = &cobra.Command{
 	Use:   "upload",
 	Short: "Uploads SBOMs from a specified folder to DependencyTrack",
-	Run: func(cmd *cobra.Command, args []string) {
-		config, err := config.LoadFromFile(cfgFile)
+	RunE: func(cmd *cobra.Command, args []string) error {
+		settings, err := extensions.GetSettings(cmd)
 		if err != nil {
-			slog.Error("Error loading configuration", "error", err)
-			return
+			slog.Error("Could not get settings from context", "error", err)
+			return err
 		}
+
 		sbomNamer := workspace.DefaultSBOMNamer{}
 		repoMapper := workspace.DefaultRepoMapper{}
 
 		readonlyWorkspace := workspace.CreateLocalReadonlySbomWorkspace(sbomFolder, sbomNamer, repoMapper)
 
-		sboms, err := readonlyWorkspace.ReadSboms(config.Repositories)
+		sboms, err := readonlyWorkspace.ReadSboms(settings.Repositories)
 		if err != nil {
 			slog.Error("Error reading SBOMs", "error", err)
-			return
+			return err
 		}
 
-		uploader, err := upload.CreateDependencyTrackUploader(config)
+		uploader, err := upload.CreateDependencyTrackUploader(settings)
 		if err != nil {
 			slog.Error("Error creating uploader", "error", err)
-			return
+			return err
 		}
 
 		for _, sbom := range sboms {
@@ -44,12 +45,12 @@ var uploadCmd = &cobra.Command{
 				continue
 			}
 		}
+		return nil
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(uploadCmd)
-
-	uploadCmd.Flags().StringVarP(&cfgFile, "config", "c", "./config.json", "Path to the configuration file")
+	extensions.RequireConfig(uploadCmd)
+	uploadCmd.Flags().StringP("config", "c", "./config.json", "Path to the configuration file")
 	uploadCmd.Flags().StringVar(&sbomFolder, "sboms-dir", "/sboms", "Directory containg the sboms to upload")
 }
