@@ -50,6 +50,24 @@ Define your targets and settings in a JSON config file. See `exampleConfig.json`
             ]
             
         }
+    ],
+    ""applications": [
+        {
+            "name": "My-App",
+            "type": "node",
+            "projects": [
+                {
+                    "name": "My-App - Dev",
+                    "version": "Dev",
+                    "isLatest": true
+                },
+                {
+                    "name": "My-App - Prod",
+                    "version": "Prod",
+                    "isLatest": false
+                }
+            ]
+        }
     ]
 }
 
@@ -58,6 +76,10 @@ The `dependencyTrack` section in your configuration file is **mandatory**, as is
 
 You can configure multiple *targets* for a single repository. This can be useful for a monorepo, where different programming languages or projects are managed under a single repository. You can find all supported targets in the [Cdxgen documentation](https://cyclonedx.github.io/cdxgen/#/PROJECT_TYPES).
 If you project contains multiple subprojects of the same type. You can specify the subdir within the repo using the optional `directory` property.
+
+
+The new block `applications` is optional and can be used to define application. An application can contain multiple *Projects*. Each project represents a project in DependencyTrack.
+This concept will be used in future updates to enable an GitOps mode in which central cyclone will monitor you gitops repo(s) and create sboms for the deployed versions on you environments.
 
 ### Commands
 
@@ -88,12 +110,21 @@ It is important, that Central Cyclone can only upload sboms created by Central C
 ```
 upload
 ```
-```
-analyze 
-```
+
 - `-c path-to-config`: Path to your configuration JSON file.
 - `--sboms-dir`: Required, path to dir containing all the sboms to upload.
 `
+#### Sync Projects with DependencyTrack
+You can use central cyclone to create and sync DependencyTrack projects. However, this feature is not a configuration as code solution. As described in the config, it will only sync projects defined for applications. This will later be used for the GitOps mode of central cycline.
+
+To trigger the sync use this command:
+
+```
+dt projects sync
+```
+- `-c path-to-config`: Path to your configuration JSON file
+
+The command will only create projects, if they don't exist. Existing projects are not deleted and not updated.
 
 ### Docker Image
 We provide an official docker image under the packages section of GitHub. It's recommended to use the docker image to run Central-Cyclone as it already includes all dependencies such as `git` and `cdxgen`.
@@ -150,8 +181,7 @@ The API key only needs the BOM-Upload permissions for the projects. Central Cycl
 See `exampleConfig.json` for a minimal working configuration.
 
 ## Roadmap
-- Official Docker image for easy use
-- Git access token support to use Central Cyclone on private repos.
+- Support GitOps: Automaticly create SBOMs for the deployed version of you apps.
 
 
 ## Contributing & Support
@@ -180,4 +210,4 @@ and can reach a DependencyTrack instance.
 
 
 ## AI Disclaimer
-This project was created with the support of GitHub Copilot. Feel free to let AI assist you with pull requests, but please review the changes yourself.
+This project was created with the support of AI. Feel free to let AI assist you with pull requests, but please review the changes yourself.
