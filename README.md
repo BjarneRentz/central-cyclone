@@ -93,7 +93,7 @@ This concept will be used in future updates to enable an GitOps mode in which ce
 
 
 #### Analyze configured repos
-The `analyze` command clones and analyzes all configured repositories for their defined targets. The resulting SBOMs are either saved under `~/.central-cyclone/workspace/sboms` or directly uploaded.
+The `analyze` command clones and analyzes all configured repositories for their defined targets. The resulting SBOMs are either saved under `~/.central-cyclone/workfolder/sboms` or directly uploaded.
 
 
 ```
