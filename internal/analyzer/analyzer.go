@@ -19,26 +19,27 @@ type CdxgenAnalyzer struct{}
 
 func (a CdxgenAnalyzer) AnalyzeProject(repo workspace.ClonedRepo, target config.RepoTarget) (sbom.Sbom, error) {
 
-	fileName := fmt.Sprintf("sbom_%s.json", target.Type)
+	sbomFileName := fmt.Sprintf("sbom_%s.json", target.Type)
+	sbomFilePath := filepath.Join(repo.Path, sbomFileName)
 
-	scanPath := repo.Path
+	cmd := exec.Command("cdxgen", "--fail-on-error", "-t", target.Type, "-o", sbomFileName)
 
 	if target.Directory != nil {
-		scanPath = filepath.Join(repo.Path, *target.Directory)
+		cmd.Args = append(cmd.Args, *target.Directory)
 	}
 
-	cmd := exec.Command("cdxgen", "--fail-on-error", "-t", target.Type, "-o", fileName, scanPath)
+	cmd.Dir = repo.Path
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		slog.Error("Creating sbom with cdxgen failed: ", "output", string(output), "error", err)
 		return sbom.Sbom{}, fmt.Errorf("cdxgen failed: %v\nOutput: %s", err, string(output))
 	}
 
-	bytes, err := os.ReadFile(fileName)
-	os.Remove(fileName)
+	bytes, err := os.ReadFile(sbomFilePath)
+	os.Remove(sbomFilePath)
 
 	if err != nil {
-		slog.Error("Failed to read created sbom file", "path", fileName)
+		slog.Error("Failed to read created sbom file", "path", sbomFileName)
 		return sbom.Sbom{}, fmt.Errorf("failed to read sbom file: %v", err)
 	}
 	return sbom.Sbom{
