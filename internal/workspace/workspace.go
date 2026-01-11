@@ -27,26 +27,26 @@ type localWorkspace struct {
 
 type Workspace interface {
 	Clear() error
-	CloneRepoToWorkspace(repoUrl string) (ClonedRepo, error)
+	CloneRepoToWorkspace(repoUrl string) (models.ClonedRepo, error)
 	SaveSbom(sbom models.Sbom) error
 }
 
-func (w localWorkspace) CloneRepoToWorkspace(repoUrl string) (ClonedRepo, error) {
+func (w localWorkspace) CloneRepoToWorkspace(repoUrl string) (models.ClonedRepo, error) {
 	folderName, err := w.repoMapper.GetFolderName(repoUrl)
 	if err != nil {
-		return ClonedRepo{}, fmt.Errorf("failed to get folder name from repo URL: %w", err)
+		return models.ClonedRepo{}, fmt.Errorf("failed to get folder name from repo URL: %w", err)
 	}
 	targetDir := filepath.Join(w.reposPath, folderName)
 
 	if err := w.fs.CreateFolderIfNotExists(targetDir); err != nil {
-		return ClonedRepo{}, fmt.Errorf("failed to create target dir: %w", err)
+		return models.ClonedRepo{}, fmt.Errorf("failed to create target dir: %w", err)
 	}
 
 	err = w.gitCloner.CloneRepoToDir(repoUrl, targetDir)
 	if err != nil {
-		return ClonedRepo{}, fmt.Errorf("failed to clone repo: %w", err)
+		return models.ClonedRepo{}, fmt.Errorf("failed to clone repo: %w", err)
 	}
-	return ClonedRepo{
+	return models.ClonedRepo{
 		Path:       targetDir,
 		FolderName: folderName,
 		RepoUrl:    repoUrl,

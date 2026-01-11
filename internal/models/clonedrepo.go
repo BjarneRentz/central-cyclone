@@ -1,4 +1,4 @@
-package workspace
+package models
 
 type ClonedRepo struct {
 	Path       string
