@@ -3,7 +3,7 @@ package handlers
 import (
 	"central-cyclone/internal/analyzer"
 	"central-cyclone/internal/config"
-	"central-cyclone/internal/sbom"
+	"central-cyclone/internal/models"
 	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
 	"fmt"
@@ -34,7 +34,7 @@ func analyzeRepos(repoSettings []config.Repo, workspaceHandler workspace.Workspa
 
 }
 
-func uploadSbom(uploader upload.Uploader, sbom sbom.Sbom) error {
+func uploadSbom(uploader upload.Uploader, sbom models.Sbom) error {
 	err := uploader.UploadSBOM(sbom)
 	if err != nil {
 		slog.Error("Could not upload SBOM", "error", err)

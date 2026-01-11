@@ -1,4 +1,4 @@
-package sbom
+package models
 
 type Sbom struct {
 	ProjectId         string

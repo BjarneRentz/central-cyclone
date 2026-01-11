@@ -1,7 +1,7 @@
 package workspace
 
 import (
-	"central-cyclone/internal/sbom"
+	"central-cyclone/internal/models"
 	"path/filepath"
 	"testing"
 )
@@ -9,7 +9,7 @@ import (
 func TestDefaultSBOMNamer_GenerateSBOMPath(t *testing.T) {
 	namer := DefaultSBOMNamer{}
 	sbomsDir := "/path/to/sboms"
-	sbom := sbom.Sbom{
+	sbom := models.Sbom{
 		ProjectFolderName: "org_repo",
 		ProjectType:       "go",
 	}

@@ -2,7 +2,7 @@ package upload
 
 import (
 	"bytes"
-	"central-cyclone/internal/sbom"
+	"central-cyclone/internal/models"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -15,7 +15,7 @@ type DependencyTrackUploader struct {
 	apiKey    string
 }
 
-func (uploader DependencyTrackUploader) UploadSBOM(sbom sbom.Sbom) error {
+func (uploader DependencyTrackUploader) UploadSBOM(sbom models.Sbom) error {
 	url := uploader.serverURL + "/api/v1/bom"
 	encodedSbom, err := getEncodedSbom(sbom)
 	if err != nil {
@@ -44,7 +44,7 @@ func (uploader DependencyTrackUploader) UploadSBOM(sbom sbom.Sbom) error {
 	return nil
 }
 
-func getEncodedSbom(sbom sbom.Sbom) (string, error) {
+func getEncodedSbom(sbom models.Sbom) (string, error) {
 	encodedSbom := base64.StdEncoding.EncodeToString(sbom.Data)
 	return encodedSbom, nil
 }

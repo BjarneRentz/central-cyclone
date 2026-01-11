@@ -2,7 +2,7 @@ package workspace
 
 import (
 	"central-cyclone/internal/config"
-	"central-cyclone/internal/sbom"
+	"central-cyclone/internal/models"
 	"fmt"
 	"log/slog"
 	"os"
@@ -11,7 +11,7 @@ import (
 )
 
 type ReadonlySbomWorkspace interface {
-	ReadSboms(repos []config.Repo) ([]sbom.Sbom, error)
+	ReadSboms(repos []config.Repo) ([]models.Sbom, error)
 }
 
 type LocalReadonlySbomWorkspace struct {
@@ -29,7 +29,7 @@ func CreateLocalReadonlySbomWorkspace(path string, sbomNamer SBOMNamer, repoMapp
 // In the future, we could inject an uploader, such that the garbarge collector can come in earlier.
 // Or have an own file format / json format that holds all required informations. This would allow us to just read and upload file after file
 // without requiring the config.
-func (w LocalReadonlySbomWorkspace) ReadSboms(repos []config.Repo) ([]sbom.Sbom, error) {
+func (w LocalReadonlySbomWorkspace) ReadSboms(repos []config.Repo) ([]models.Sbom, error) {
 	repoMap := make(map[string]config.Repo) // Map folder name -> Repo
 
 	for _, repo := range repos {
@@ -45,7 +45,7 @@ func (w LocalReadonlySbomWorkspace) ReadSboms(repos []config.Repo) ([]sbom.Sbom,
 		return nil, err
 	}
 
-	var sboms []sbom.Sbom
+	var sboms []models.Sbom
 
 	for _, filePath := range filePaths {
 		if !strings.HasSuffix(filePath, ".json") {
@@ -85,7 +85,7 @@ func (w LocalReadonlySbomWorkspace) ReadSboms(repos []config.Repo) ([]sbom.Sbom,
 			return nil, fmt.Errorf("failed to read file %s: %w", filePath, err)
 		}
 
-		sbom := sbom.Sbom{
+		sbom := models.Sbom{
 			ProjectId:         projectId,
 			ProjectType:       projectType,
 			ProjectFolderName: repoFolderName,
