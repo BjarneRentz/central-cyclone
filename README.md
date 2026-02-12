@@ -51,7 +51,7 @@ Define your targets and settings in a JSON config file. See `exampleConfig.json`
             
         }
     ],
-    ""applications": [
+    "applications": [
         {
             "name": "My-App",
             "type": "node",
