@@ -3,10 +3,10 @@ package workspace
 import (
 	"central-cyclone/internal/config"
 	"central-cyclone/internal/sbom"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -30,15 +30,6 @@ func CreateLocalReadonlySbomWorkspace(path string, sbomNamer SBOMNamer, repoMapp
 // Or have an own file format / json format that holds all required informations. This would allow us to just read and upload file after file
 // without requiring the config.
 func (w LocalReadonlySbomWorkspace) ReadSboms(repos []config.Repo) ([]sbom.Sbom, error) {
-	repoMap := make(map[string]config.Repo) // Map folder name -> Repo
-
-	for _, repo := range repos {
-		folderName, err := w.repoMapper.GetFolderName(repo.Url)
-		if err != nil {
-			return nil, fmt.Errorf("failed to map repo URL %s: %w", repo.Url, err)
-		}
-		repoMap[folderName] = repo
-	}
 
 	filePaths, err := w.fs.ListFiles(w.path)
 	if err != nil {
@@ -53,44 +44,15 @@ func (w LocalReadonlySbomWorkspace) ReadSboms(repos []config.Repo) ([]sbom.Sbom,
 			continue
 		}
 
-		fileName := filepath.Base(filePath)
-
-		repoFolderName, projectType, err := w.sbomNamer.ParseFilename(fileName)
-		if err != nil {
-			slog.Error("Failed to parse SBOM filename", "filename", fileName, "error", err)
-			continue
-		}
-
-		repo, exists := repoMap[repoFolderName]
-		if !exists {
-			slog.Warn("No configured repo found for folder", "folder", repoFolderName, "file", filePath)
-			continue
-		}
-
-		var projectId string
-		for _, target := range repo.Targets {
-			if target.Type == projectType {
-				projectId = target.ProjectId
-				break
-			}
-		}
-
-		if projectId == "" {
-			slog.Warn("No target found for type", "type", projectType, "repo", repoFolderName, "file", filePath)
-			continue
-		}
-
 		data, err := os.ReadFile(filePath)
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to read file %s: %w", filePath, err)
 		}
 
-		sbom := sbom.Sbom{
-			ProjectId:         projectId,
-			ProjectType:       projectType,
-			ProjectFolderName: repoFolderName,
-			Data:              data,
-		}
+		sbom := sbom.Sbom{}
+
+		json.Unmarshal(data, &sbom)
 
 		sboms = append(sboms, sbom)
 	}
