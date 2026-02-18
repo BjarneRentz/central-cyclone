@@ -53,9 +53,9 @@ type GitOpsApplication struct {
 }
 
 type VersionIdentifier struct {
-	Version  string `json:"version"`
-	Filepath string `json:"filepath"`
-	YamlPath string `json:"yamlPath"`
+	Environment string `json:"environment"`
+	Filepath    string `json:"filepath"`
+	YamlPath    string `json:"yamlPath"`
 }
 
 type ApllicationRepo struct {
