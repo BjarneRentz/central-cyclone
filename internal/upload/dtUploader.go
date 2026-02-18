@@ -45,7 +45,7 @@ func (uploader DependencyTrackUploader) UploadSBOM(sbom sbom.Sbom) error {
 }
 
 func getEncodedSbom(sbom sbom.Sbom) (string, error) {
-	encodedSbom := base64.StdEncoding.EncodeToString(sbom.Data)
+	encodedSbom := base64.StdEncoding.EncodeToString([]byte(sbom.Data))
 	return encodedSbom, nil
 }
 
