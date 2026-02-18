@@ -105,7 +105,7 @@ analyze
 #### Upload
 The upload command can be used to upload the sbom files resulting from the analyze command. This can be useful in restricted network environments. You can use a two stage pipeline to first analyze the projects on a cloud agent and use a self hosted agent to upload the reuslting sboms.
 
-It is important, that Central Cyclone can only upload sboms created by Central Cyclone. Otherwise, Central Cyclone is not able to match the sbom file with the corresponding project.
+It is important, that Central Cyclone can only upload sboms created by Central Cyclone with the same version. Central Cyclon does not save the *raw* sbom as json but wrapped with some meta information such as the DependencyTrack Project Id.
 
 ```
 upload
