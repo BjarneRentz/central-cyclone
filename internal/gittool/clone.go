@@ -5,7 +5,9 @@ import (
 	"central-cyclone/internal/workspace"
 	"log/slog"
 	"os"
-	"os/exec"
+
+	"github.com/go-git/go-git/v6"
+	"github.com/go-git/go-git/v6/plumbing/transport/http"
 )
 
 type Cloner interface {
@@ -27,23 +29,28 @@ func (c LocalGitCloner) CloneRepo(repoURL string) (models.ClonedRepo, error) {
 	}
 
 	slog.Info("🛠️  Cloning repo into the workfolder", "repo", repoURL)
-	repoURL = adaptUrlIfTokenIsProvided(repoURL)
-	cmd := exec.Command("git", "clone", "--quiet", "--depth", "1", repoURL, path)
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
+
+	cloneOpts := &git.CloneOptions{
+		URL:   repoURL,
+		Depth: 1,
+	}
+
+	// Handle authentication if GIT_TOKEN is provided
+	token := os.Getenv("GIT_TOKEN")
+	if token != "" {
+		cloneOpts.Auth = &http.BasicAuth{
+			Username: "git",
+			Password: token,
+		}
+	}
+
+	_, err = git.PlainClone(path, cloneOpts)
 	if err != nil {
 		return models.ClonedRepo{}, err
 	}
+
 	return models.ClonedRepo{
 		RepoUrl: repoURL,
 		Path:    path,
 	}, nil
-}
-
-func adaptUrlIfTokenIsProvided(repoURL string) string {
-	token := os.Getenv("GIT_TOKEN")
-	if token != "" && len(repoURL) > 8 && repoURL[:8] == "https://" {
-		repoURL = "https://" + token + "@" + repoURL[8:]
-	}
-	return repoURL
 }
