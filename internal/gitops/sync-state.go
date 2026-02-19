@@ -1,13 +1,13 @@
 package gitops
 
-import "central-cyclone/internal/models"
+import "central-cyclone/internal/gittool"
 
 type SyncState struct {
 	GitOpsRepos map[string]GitOpsRepoState // Key: Repo URL
 }
 
 type GitOpsRepoState struct {
-	Repo      models.ClonedRepo
+	Repo      gittool.ClonedRepo
 	AppStates map[AppStateKey]AppState
 }
 

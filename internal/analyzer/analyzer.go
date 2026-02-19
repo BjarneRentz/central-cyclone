@@ -2,6 +2,7 @@ package analyzer
 
 import (
 	"central-cyclone/internal/config"
+	"central-cyclone/internal/gittool"
 	"central-cyclone/internal/models"
 	"fmt"
 	"log/slog"
@@ -11,12 +12,12 @@ import (
 )
 
 type Analyzer interface {
-	AnalyzeProject(repo models.ClonedRepo, target config.RepoTarget) (models.Sbom, error)
+	AnalyzeProject(repo gittool.ClonedRepo, target config.RepoTarget) (models.Sbom, error)
 }
 
 type CdxgenAnalyzer struct{}
 
-func (a CdxgenAnalyzer) AnalyzeProject(repo models.ClonedRepo, target config.RepoTarget) (models.Sbom, error) {
+func (a CdxgenAnalyzer) AnalyzeProject(repo gittool.ClonedRepo, target config.RepoTarget) (models.Sbom, error) {
 
 	sbomFileName := fmt.Sprintf("sbom_%s.json", target.Type)
 	sbomFilePath := filepath.Join(repo.Path, sbomFileName)

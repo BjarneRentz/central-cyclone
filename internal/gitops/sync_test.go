@@ -2,6 +2,7 @@ package gitops
 
 import (
 	"central-cyclone/internal/config"
+	"central-cyclone/internal/gittool"
 	"central-cyclone/internal/models"
 	"errors"
 	"testing"
@@ -11,13 +12,13 @@ import (
 type MockCloner struct {
 	cloneRepoCallCount int
 	cloneRepoErr       error
-	cloneRepoResult    models.ClonedRepo
+	cloneRepoResult    gittool.ClonedRepo
 }
 
-func (m *MockCloner) CloneRepo(repoURL string) (models.ClonedRepo, error) {
+func (m *MockCloner) CloneRepo(repoURL string) (gittool.ClonedRepo, error) {
 	m.cloneRepoCallCount++
 	if m.cloneRepoErr != nil {
-		return models.ClonedRepo{}, m.cloneRepoErr
+		return gittool.ClonedRepo{}, m.cloneRepoErr
 	}
 	return m.cloneRepoResult, nil
 }
@@ -85,7 +86,7 @@ func TestNewSyncer(t *testing.T) {
 
 func TestSyncer_Init_Success(t *testing.T) {
 	mockCloner := &MockCloner{
-		cloneRepoResult: models.ClonedRepo{
+		cloneRepoResult: gittool.ClonedRepo{
 			Path:    "/tmp/repo1",
 			RepoUrl: "https://github.com/example/repo1.git",
 		},
@@ -145,7 +146,7 @@ func TestSyncer_Init_Success(t *testing.T) {
 
 func TestSyncer_Init_MultipleRepos(t *testing.T) {
 	mockCloner := &MockCloner{
-		cloneRepoResult: models.ClonedRepo{
+		cloneRepoResult: gittool.ClonedRepo{
 			Path:    "/tmp/repo",
 			RepoUrl: "https://github.com/example/repo.git",
 		},
@@ -248,7 +249,7 @@ func TestSyncer_Init_CloneError(t *testing.T) {
 
 func TestSyncer_Init_ReadFileError(t *testing.T) {
 	mockCloner := &MockCloner{
-		cloneRepoResult: models.ClonedRepo{
+		cloneRepoResult: gittool.ClonedRepo{
 			Path:    "/tmp/repo",
 			RepoUrl: "https://github.com/example/repo.git",
 		},
@@ -290,7 +291,7 @@ func TestSyncer_Init_ReadFileError(t *testing.T) {
 
 func TestSyncer_Init_ExtractValueError(t *testing.T) {
 	mockCloner := &MockCloner{
-		cloneRepoResult: models.ClonedRepo{
+		cloneRepoResult: gittool.ClonedRepo{
 			Path:    "/tmp/repo",
 			RepoUrl: "https://github.com/example/repo.git",
 		},
@@ -329,7 +330,7 @@ func TestSyncer_Init_ExtractValueError(t *testing.T) {
 
 func TestSyncer_Init_MultipleAppsPerRepo(t *testing.T) {
 	mockCloner := &MockCloner{
-		cloneRepoResult: models.ClonedRepo{
+		cloneRepoResult: gittool.ClonedRepo{
 			Path:    "/tmp/repo",
 			RepoUrl: "https://github.com/example/repo.git",
 		},
@@ -427,7 +428,7 @@ func TestSyncer_Init_EmptyRepoList(t *testing.T) {
 
 func TestSyncer_Init_AppStateProperties(t *testing.T) {
 	mockCloner := &MockCloner{
-		cloneRepoResult: models.ClonedRepo{
+		cloneRepoResult: gittool.ClonedRepo{
 			Path:    "/tmp/repo",
 			RepoUrl: "https://github.com/example/repo.git",
 		},

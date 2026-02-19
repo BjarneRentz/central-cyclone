@@ -67,7 +67,7 @@ func TestCloneRepoErrorOnCreateRepoFolder(t *testing.T) {
 		t.Errorf("Expected error %v, got %v", createErr, err)
 	}
 
-	if result != (models.ClonedRepo{}) {
+	if result != (ClonedRepo{}) {
 		t.Errorf("Expected empty ClonedRepo on error, got %v", result)
 	}
 
@@ -109,7 +109,7 @@ func TestCloneRepoInvalidGitURL(t *testing.T) {
 				t.Errorf("Expected error for URL %q", tt.repoURL)
 			}
 
-			if err != nil && result != (models.ClonedRepo{}) {
+			if err != nil && result != (ClonedRepo{}) {
 				t.Errorf("Expected empty ClonedRepo on error, got %v", result)
 			}
 		})

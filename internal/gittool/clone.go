@@ -1,7 +1,6 @@
 package gittool
 
 import (
-	"central-cyclone/internal/models"
 	"central-cyclone/internal/workspace"
 	"log/slog"
 	"os"
@@ -11,7 +10,7 @@ import (
 )
 
 type Cloner interface {
-	CloneRepo(repoURL string) (models.ClonedRepo, error)
+	CloneRepo(repoURL string) (ClonedRepo, error)
 }
 
 func CreateLocalGitCloner(workspaceHandler workspace.Workspace) Cloner {
@@ -22,10 +21,10 @@ type LocalGitCloner struct {
 	workspace workspace.Workspace
 }
 
-func (c LocalGitCloner) CloneRepo(repoURL string) (models.ClonedRepo, error) {
+func (c LocalGitCloner) CloneRepo(repoURL string) (ClonedRepo, error) {
 	path, err := c.workspace.CreateRepoFolder(repoURL)
 	if err != nil {
-		return models.ClonedRepo{}, err
+		return ClonedRepo{}, err
 	}
 
 	slog.Info("🛠️  Cloning repo into the workfolder", "repo", repoURL)
@@ -46,10 +45,10 @@ func (c LocalGitCloner) CloneRepo(repoURL string) (models.ClonedRepo, error) {
 
 	_, err = git.PlainClone(path, cloneOpts)
 	if err != nil {
-		return models.ClonedRepo{}, err
+		return ClonedRepo{}, err
 	}
 
-	return models.ClonedRepo{
+	return ClonedRepo{
 		RepoUrl: repoURL,
 		Path:    path,
 	}, nil
