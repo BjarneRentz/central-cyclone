@@ -28,6 +28,7 @@ type Workspace interface {
 	Clear() error
 	CreateRepoFolder(repiUrl string) (string, error)
 	SaveSbom(sbom models.Sbom) error
+	ReadFileFromRepo(repoPath string, relativePath string) ([]byte, error)
 }
 
 func (w localWorkspace) CreateRepoFolder(repoUrl string) (string, error) {
@@ -67,6 +68,34 @@ func (w localWorkspace) SaveSbom(sbom models.Sbom) error {
 	}
 	slog.Info("💾 Saved SBOM", "path", sbomPath)
 	return nil
+}
+
+// ReadFileFromRepo reads a file from a cloned repository at the given relative path
+// It returns the raw file contents as bytes
+// Includes path traversal protection to prevent accessing files outside the repository
+func (w localWorkspace) ReadFileFromRepo(repoPath string, relativePath string) ([]byte, error) {
+	if repoPath == "" {
+		return nil, fmt.Errorf("repoPath cannot be empty")
+	}
+	if relativePath == "" {
+		return nil, fmt.Errorf("relativePath cannot be empty")
+	}
+
+	filePath := filepath.Join(repoPath, relativePath)
+
+	// Prevent path traversal attacks - ensure the resolved path is within the repo
+	cleanedPath := filepath.Clean(filePath)
+	cleanedRepoPath := filepath.Clean(repoPath)
+	if !filepath.HasPrefix(cleanedPath, cleanedRepoPath) {
+		return nil, fmt.Errorf("path traversal detected: %s is outside repository", relativePath)
+	}
+
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file %s from repo: %w", relativePath, err)
+	}
+
+	return data, nil
 }
 
 func CreateLocalWorkspace() (Workspace, error) {

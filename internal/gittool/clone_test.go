@@ -32,6 +32,10 @@ func (m *MockWorkspace) SaveSbom(sbom models.Sbom) error {
 	return nil
 }
 
+func (m *MockWorkspace) ReadFileFromRepo(repoPath string, relativePath string) ([]byte, error) {
+	return nil, nil
+}
+
 func TestCreateLocalGitCloner(t *testing.T) {
 	mockWS := &MockWorkspace{}
 	cloner := CreateLocalGitCloner(mockWS)
