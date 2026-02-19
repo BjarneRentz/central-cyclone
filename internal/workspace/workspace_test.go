@@ -52,20 +52,17 @@ func TestCloneRepoToWorkspace(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create a mock git cloner
-			mockCloner := &mockGitCloner{}
 
 			// Create a workspace with the mock cloner
 			w := localWorkspace{
 				path:       tempDir,
 				reposPath:  reposPath,
-				gitCloner:  mockCloner,
 				fs:         LocalFSHelper{},
 				repoMapper: DefaultRepoMapper{},
 			}
 
 			// Call CloneRepoToWorkspace
-			clonedRepo, err := w.CloneRepoToWorkspace(tt.repoURL)
+			repoPath, err := w.CreateRepoFolder(tt.repoURL)
 
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
@@ -73,16 +70,8 @@ func TestCloneRepoToWorkspace(t *testing.T) {
 			}
 
 			// Verify the returned path matches expected
-			if clonedRepo.Path != tt.wantPath {
-				t.Errorf("CloneRepoToWorkspace() returned path = %v, want %v", clonedRepo, tt.wantPath)
-			}
-
-			// Verify that CloneRepoToDir was called with correct arguments
-			if mockCloner.lastRepoURL != tt.repoURL {
-				t.Errorf("CloneRepoToDir() was called with repoURL = %v, want %v", mockCloner.lastRepoURL, tt.repoURL)
-			}
-			if mockCloner.lastTargetDir != tt.wantPath {
-				t.Errorf("CloneRepoToDir() was called with targetDir = %v, want %v", mockCloner.lastTargetDir, tt.wantPath)
+			if repoPath != tt.wantPath {
+				t.Errorf("CloneRepoToWorkspace() returned path = %v, want %v", repoPath, tt.wantPath)
 			}
 
 			// Verify the directory was created

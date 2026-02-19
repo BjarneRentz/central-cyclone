@@ -2,12 +2,14 @@ package gitops
 
 import (
 	"central-cyclone/internal/config"
+	"central-cyclone/internal/gittool"
 	"central-cyclone/internal/workspace"
 	"log/slog"
 )
 
 type Syncer struct {
 	state     SyncState
+	gitTool   gittool.Cloner
 	workspace workspace.Workspace
 }
 
@@ -22,7 +24,7 @@ func (s Syncer) Init(gitOpsRepos []config.GitOpsRepo) error {
 // Gittool can later also checkout a repo at a given hash / tag / etc
 
 func (s Syncer) initGitOpsRepo(gitOpsRepo config.GitOpsRepo) (GitOpsRepoState, error) {
-	clonedRepo, err := s.workspace.CloneRepoToWorkspace(gitOpsRepo.Url)
+	clonedRepo, err := s.gitTool.CloneRepo(gitOpsRepo.Url)
 	if err != nil {
 		slog.Error("Could not clone GitOpsRepo", "repoUrl", gitOpsRepo.Url, "error", err)
 		return GitOpsRepoState{}, err

@@ -6,6 +6,7 @@ package cmd
 import (
 	"central-cyclone/cmd/extensions"
 	config "central-cyclone/internal/config"
+	"central-cyclone/internal/gittool"
 	coordinator "central-cyclone/internal/handlers"
 	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
@@ -44,6 +45,9 @@ func runAnalyzeCommand(settings *config.Settings) {
 		slog.Error("Error creating workspace", "error", err)
 		return
 	}
+
+	gitTool := gittool.CreateLocalGitCloner(workspaceHandler)
+
 	err = workspaceHandler.Clear()
 	if err != nil {
 		slog.Error("Error clearing workspace", "error", err)
@@ -56,8 +60,8 @@ func runAnalyzeCommand(settings *config.Settings) {
 			slog.Error("Error creating uploader", "error", err)
 			return
 		}
-		coordinator.AnalyzeAndUpload(settings, workspaceHandler, uploader)
+		coordinator.AnalyzeAndUpload(settings, gitTool, workspaceHandler, uploader)
 	} else {
-		coordinator.AnalyzeAndSave(settings, workspaceHandler)
+		coordinator.AnalyzeAndSave(settings, gitTool, workspaceHandler)
 	}
 }

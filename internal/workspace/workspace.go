@@ -1,7 +1,6 @@
 package workspace
 
 import (
-	"central-cyclone/internal/gittool"
 	"central-cyclone/internal/models"
 	"encoding/json"
 	"fmt"
@@ -20,7 +19,6 @@ type localWorkspace struct {
 	path       string
 	reposPath  string
 	sbomsPath  string
-	gitCloner  gittool.Cloner
 	fs         FSHelper
 	namer      SBOMNamer
 	repoMapper RepoURLMapper
@@ -28,29 +26,23 @@ type localWorkspace struct {
 
 type Workspace interface {
 	Clear() error
-	CloneRepoToWorkspace(repoUrl string) (models.ClonedRepo, error)
+	CreateRepoFolder(repiUrl string) (string, error)
 	SaveSbom(sbom models.Sbom) error
 }
 
-func (w localWorkspace) CloneRepoToWorkspace(repoUrl string) (models.ClonedRepo, error) {
+func (w localWorkspace) CreateRepoFolder(repoUrl string) (string, error) {
 	folderName, err := w.repoMapper.GetFolderName(repoUrl)
 	if err != nil {
-		return models.ClonedRepo{}, fmt.Errorf("failed to get folder name from repo URL: %w", err)
+		return "", fmt.Errorf("failed to get folder name from repo URL: %w", err)
 	}
 	targetDir := filepath.Join(w.reposPath, folderName)
 
 	if err := w.fs.CreateFolderIfNotExists(targetDir); err != nil {
-		return models.ClonedRepo{}, fmt.Errorf("failed to create target dir: %w", err)
+		return "", fmt.Errorf("failed to create target dir: %w", err)
 	}
 
-	err = w.gitCloner.CloneRepoToDir(repoUrl, targetDir)
-	if err != nil {
-		return models.ClonedRepo{}, fmt.Errorf("failed to clone repo: %w", err)
-	}
-	return models.ClonedRepo{
-		Path:    targetDir,
-		RepoUrl: repoUrl,
-	}, nil
+	return targetDir, nil
+
 }
 
 func (w localWorkspace) Clear() error {
@@ -102,7 +94,6 @@ func CreateLocalWorkspace() (Workspace, error) {
 		path:       fullWorkFolderPath,
 		reposPath:  fullReposPath,
 		sbomsPath:  fullSbomsPath,
-		gitCloner:  gittool.LocalGitCloner{},
 		fs:         fs,
 		namer:      DefaultSBOMNamer{},
 		repoMapper: DefaultRepoMapper{},
