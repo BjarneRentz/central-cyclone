@@ -3,6 +3,7 @@ package workspace
 import (
 	"central-cyclone/internal/gittool"
 	"central-cyclone/internal/models"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -47,9 +48,8 @@ func (w localWorkspace) CloneRepoToWorkspace(repoUrl string) (models.ClonedRepo,
 		return models.ClonedRepo{}, fmt.Errorf("failed to clone repo: %w", err)
 	}
 	return models.ClonedRepo{
-		Path:       targetDir,
-		FolderName: folderName,
-		RepoUrl:    repoUrl,
+		Path:    targetDir,
+		RepoUrl: repoUrl,
 	}, nil
 }
 
@@ -66,7 +66,11 @@ func (w localWorkspace) Clear() error {
 
 func (w localWorkspace) SaveSbom(sbom models.Sbom) error {
 	sbomPath := w.namer.GenerateSBOMPath(w.sbomsPath, sbom)
-	if err := w.fs.WriteFile(sbomPath, sbom.Data); err != nil {
+	data, err := json.Marshal(sbom)
+	if err != nil {
+		return fmt.Errorf("failed to marshal SBOM: %w", err)
+	}
+	if err := w.fs.WriteFile(sbomPath, data); err != nil {
 		return fmt.Errorf("failed to save SBOM to %s: %w", sbomPath, err)
 	}
 	slog.Info("💾 Saved SBOM", "path", sbomPath)

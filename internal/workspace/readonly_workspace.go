@@ -3,10 +3,10 @@ package workspace
 import (
 	"central-cyclone/internal/config"
 	"central-cyclone/internal/models"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -53,44 +53,15 @@ func (w LocalReadonlySbomWorkspace) ReadSboms(repos []config.Repo) ([]models.Sbo
 			continue
 		}
 
-		fileName := filepath.Base(filePath)
-
-		repoFolderName, projectType, err := w.sbomNamer.ParseFilename(fileName)
-		if err != nil {
-			slog.Error("Failed to parse SBOM filename", "filename", fileName, "error", err)
-			continue
-		}
-
-		repo, exists := repoMap[repoFolderName]
-		if !exists {
-			slog.Warn("No configured repo found for folder", "folder", repoFolderName, "file", filePath)
-			continue
-		}
-
-		var projectId string
-		for _, target := range repo.Targets {
-			if target.Type == projectType {
-				projectId = target.ProjectId
-				break
-			}
-		}
-
-		if projectId == "" {
-			slog.Warn("No target found for type", "type", projectType, "repo", repoFolderName, "file", filePath)
-			continue
-		}
-
 		data, err := os.ReadFile(filePath)
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to read file %s: %w", filePath, err)
 		}
 
-		sbom := models.Sbom{
-			ProjectId:         projectId,
-			ProjectType:       projectType,
-			ProjectFolderName: repoFolderName,
-			Data:              data,
-		}
+		sbom := models.Sbom{}
+
+		json.Unmarshal(data, &sbom)
 
 		sboms = append(sboms, sbom)
 	}

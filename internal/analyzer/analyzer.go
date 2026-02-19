@@ -35,6 +35,7 @@ func (a CdxgenAnalyzer) AnalyzeProject(repo models.ClonedRepo, target config.Rep
 	}
 
 	bytes, err := os.ReadFile(sbomFilePath)
+	sbomstring := string(bytes)
 	os.Remove(sbomFilePath)
 
 	if err != nil {
@@ -42,9 +43,8 @@ func (a CdxgenAnalyzer) AnalyzeProject(repo models.ClonedRepo, target config.Rep
 		return models.Sbom{}, fmt.Errorf("failed to read sbom file: %v", err)
 	}
 	return models.Sbom{
-		ProjectId:         target.ProjectId,
-		ProjectType:       target.Type,
-		ProjectFolderName: repo.FolderName,
-		Data:              bytes,
+		ProjectId:   target.ProjectId,
+		ProjectType: target.Type,
+		Data:        sbomstring,
 	}, nil
 }

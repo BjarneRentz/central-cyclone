@@ -1,8 +1,7 @@
 package models
 
 type Sbom struct {
-	ProjectId         string
-	ProjectType       string
-	ProjectFolderName string
-	Data              []byte
+	ProjectId   string `json:"projectId"`
+	ProjectType string `json:"projectType"`
+	Data        string `json:"data"`
 }
