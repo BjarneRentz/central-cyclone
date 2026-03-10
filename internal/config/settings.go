@@ -11,7 +11,7 @@ type Settings struct {
 	DependencyTrack  DependencyTrackConfig `json:"dependencyTrack"`
 	Applications     []Application         `json:"applications"`
 	GitOpsRepos      []GitOpsRepo          `json:"gitOpsRepos"`
-	ApllicationRepos []ApllicationRepo     `json:"applicationRepos"`
+	ApllicationRepos []ApplicationRepo     `json:"applicationRepos"`
 }
 
 type Repo struct {
@@ -58,7 +58,7 @@ type VersionIdentifier struct {
 	YamlPath    string `json:"yamlPath"`
 }
 
-type ApllicationRepo struct {
+type ApplicationRepo struct {
 	Applications []string `json:"applications"`
 	RepoUrl      string   `json:"repoUrl"`
 }
