@@ -15,7 +15,7 @@ type AppState struct {
 	AppName        string
 	Environment    string // Dev / Prod / etc.
 	CurrentVersion string
-	Handled        bool // Specified Version
+	Handled        bool
 }
 
 type AppStateKey struct {

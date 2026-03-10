@@ -55,7 +55,7 @@ func (s *Syncer) initGitOpsRepo(gitOpsRepo config.GitOpsRepo) (GitOpsRepoState, 
 	for _, app := range gitOpsRepo.GitOpsApplications {
 		for _, versionIdentifier := range app.VersionIdentifiers {
 
-			fileContent, err := s.workspace.ReadFileFromRepo(clonedRepo.Path, versionIdentifier.Filepath)
+			versionIdentifierFile, err := s.workspace.ReadFileFromRepo(clonedRepo.Path, versionIdentifier.Filepath)
 			if err != nil {
 				slog.Error("Failed to read version file",
 					"app", app.ApplicationName,
@@ -65,7 +65,7 @@ func (s *Syncer) initGitOpsRepo(gitOpsRepo config.GitOpsRepo) (GitOpsRepoState, 
 				return GitOpsRepoState{}, fmt.Errorf("failed to read file %s: %w", versionIdentifier.Filepath, err)
 			}
 
-			version, err := extractor.ExtractValue(fileContent, versionIdentifier.YamlPath)
+			version, err := extractor.ExtractValue(versionIdentifierFile, versionIdentifier.YamlPath)
 			if err != nil {
 				slog.Error("Failed to extract version from file",
 					"app", app.ApplicationName,
