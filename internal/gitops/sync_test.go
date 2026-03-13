@@ -471,8 +471,8 @@ func TestSyncer_Init_AppStateProperties(t *testing.T) {
 		t.Errorf("Expected AppName 'testapp', got %q", appState.AppName)
 	}
 
-	if appState.Environment != "staging" {
-		t.Errorf("Expected Environment 'staging', got %q", appState.Environment)
+	if appState.VersionIdentifier.env != "staging" {
+		t.Errorf("Expected Environment 'staging', got %q", appState.VersionIdentifier.env)
 	}
 
 	if appState.CurrentVersion != "2.5.3" {

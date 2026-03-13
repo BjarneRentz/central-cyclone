@@ -105,3 +105,37 @@ func (c *ClonedRepo) GetCurrentRevision() (string, error) {
 
 	return ref.Hash().String(), nil
 }
+
+// Tries to update the repo and returns true, if an update was available
+func (c *ClonedRepo) UpdateIfAvailable() (bool, error) {
+	repo, err := c.openRepository()
+	if err != nil {
+		return false, err
+	}
+
+	w, err := repo.Worktree()
+	if err != nil {
+		return false, fmt.Errorf("failed to get worktree: %w", err)
+	}
+
+	slog.Info("📥 Updating repository", "repo", c.RepoUrl)
+
+	token := os.Getenv("GIT_TOKEN")
+	pullOpts := &git.PullOptions{}
+
+	if token != "" {
+		pullOpts.Auth = &http.BasicAuth{
+			Username: "git",
+			Password: token,
+		}
+	}
+	err = w.Pull(pullOpts)
+
+	if err != nil && err == git.NoErrAlreadyUpToDate {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
+
+}
