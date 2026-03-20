@@ -20,7 +20,7 @@ type Syncer struct {
 func NewSyncer(gitTool gittool.Cloner, workspace workspace.Workspace) *Syncer {
 	return &Syncer{
 		state: SyncState{
-			GitOpsRepos: make(map[string]GitOpsRepoState),
+			GitOpsRepos: make(map[string]*GitOpsRepoState),
 		},
 		gitTool:        gitTool,
 		workspace:      workspace,
@@ -29,7 +29,7 @@ func NewSyncer(gitTool gittool.Cloner, workspace workspace.Workspace) *Syncer {
 }
 
 func (s *Syncer) Init(gitOpsRepos []config.GitOpsRepo) error {
-	s.state.GitOpsRepos = make(map[string]GitOpsRepoState)
+	s.state.GitOpsRepos = make(map[string]*GitOpsRepoState)
 
 	for _, repo := range gitOpsRepos {
 		repoState, err := s.initGitOpsRepo(repo)
@@ -37,7 +37,7 @@ func (s *Syncer) Init(gitOpsRepos []config.GitOpsRepo) error {
 			slog.Error("Failed to initialize GitOps repo", "repoUrl", repo.Url, "error", err)
 			return fmt.Errorf("failed to initialize GitOps repo %s: %w", repo.Url, err)
 		}
-		s.state.GitOpsRepos[repo.Url] = repoState
+		s.state.GitOpsRepos[repo.Url] = &repoState
 		slog.Info("Successfully initialized GitOps repo", "repoUrl", repo.Url, "apps", len(repoState.AppStates))
 	}
 
@@ -51,7 +51,7 @@ func (s *Syncer) initGitOpsRepo(gitOpsRepo config.GitOpsRepo) (GitOpsRepoState, 
 		return GitOpsRepoState{}, err
 	}
 
-	appStates := make(map[AppStateKey]GitOpsAppState)
+	appStates := make(map[AppStateKey]*GitOpsAppState)
 	extractor := query.NewYqValueExtractor()
 
 	for _, app := range gitOpsRepo.GitOpsApplications {
@@ -90,7 +90,7 @@ func (s *Syncer) initGitOpsRepo(gitOpsRepo config.GitOpsRepo) (GitOpsRepoState, 
 				AppName:     app.ApplicationName,
 				Environment: versionIdentifier.Environment,
 			}
-			appStates[appStateKey] = appState
+			appStates[appStateKey] = &appState
 
 			slog.Info("Extracted app version",
 				"app", app.ApplicationName,
@@ -110,14 +110,17 @@ func mapToInternalVersionIdentifer(configIdentifier config.VersionIdentifier) Ve
 	}
 }
 
-func (s *Syncer) reconcile() {
-	// Check if any gitops repo changed
-	// if not, check if any change wasn't handled
-	// if, get new versions and handle them
+func (s *Syncer) Reconcile() {
+	for _, repoState := range s.state.GitOpsRepos {
+		err := s.reconcileGitOpsRepo(repoState)
+		if err != nil {
+			slog.Warn("Error reconciling GitOps repo, skipping to next", "repo", repoState.Repo.RepoUrl, "error", err)
+		}
+	}
 
 }
 
-func (s *Syncer) reconcileGitOpsRepo(repoState GitOpsRepoState) error {
+func (s *Syncer) reconcileGitOpsRepo(repoState *GitOpsRepoState) error {
 	updated, err := repoState.Repo.UpdateIfAvailable()
 
 	if err != nil {
@@ -145,7 +148,7 @@ func (s *Syncer) reconcileGitOpsRepo(repoState GitOpsRepoState) error {
 }
 
 // Checks for unhandled changes and calls the registered handler
-func (s *Syncer) checkUnhandledChanges(repoState GitOpsRepoState) {
+func (s *Syncer) checkUnhandledChanges(repoState *GitOpsRepoState) {
 	for _, appState := range repoState.AppStates {
 
 		if appState.Handled {
@@ -156,7 +159,7 @@ func (s *Syncer) checkUnhandledChanges(repoState GitOpsRepoState) {
 }
 
 // Gets the version of an appstate based on its VersionIdentifier
-func (s *Syncer) getVersionForApp(gitopsRepo gittool.ClonedRepo, app GitOpsAppState) (string, error) {
+func (s *Syncer) getVersionForApp(gitopsRepo gittool.ClonedRepo, app *GitOpsAppState) (string, error) {
 
 	versionIdentifierFile, err := s.workspace.ReadFileFromRepo(gitopsRepo.Path, app.VersionIdentifier.filePath)
 	if err != nil {

@@ -5,12 +5,12 @@ import (
 )
 
 type SyncState struct {
-	GitOpsRepos map[string]GitOpsRepoState // Key: Repo URL
+	GitOpsRepos map[string]*GitOpsRepoState // Key: Repo URL
 }
 
 type GitOpsRepoState struct {
 	Repo      gittool.ClonedRepo
-	AppStates map[AppStateKey]GitOpsAppState
+	AppStates map[AppStateKey]*GitOpsAppState
 }
 
 type GitOpsAppState struct {

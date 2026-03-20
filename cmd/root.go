@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"central-cyclone/cmd/dtrack"
+	"central-cyclone/cmd/gitops"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -33,4 +34,5 @@ func init() {
 	rootCmd.AddCommand(dtrack.DtCmd)
 	rootCmd.AddCommand(analyzeCmd)
 	rootCmd.AddCommand(uploadCmd)
+	rootCmd.AddCommand(gitops.GitOpsCmd)
 }
