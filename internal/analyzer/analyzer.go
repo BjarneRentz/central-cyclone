@@ -1,7 +1,6 @@
 package analyzer
 
 import (
-	"central-cyclone/internal/config"
 	"central-cyclone/internal/gittool"
 	"central-cyclone/internal/models"
 	"fmt"
@@ -12,17 +11,23 @@ import (
 )
 
 type Analyzer interface {
-	AnalyzeProject(repo gittool.ClonedRepo, target config.RepoTarget) (models.Sbom, error)
+	AnalyzeProject(repo gittool.ClonedRepo, target *ScanTarget) (models.Sbom, error)
+}
+
+type ScanTarget struct {
+	ProjectId   string
+	ProjectType string
+	Directory   *string
 }
 
 type CdxgenAnalyzer struct{}
 
-func (a CdxgenAnalyzer) AnalyzeProject(repo gittool.ClonedRepo, target config.RepoTarget) (models.Sbom, error) {
+func (a CdxgenAnalyzer) AnalyzeProject(repo gittool.ClonedRepo, target *ScanTarget) (models.Sbom, error) {
 
-	sbomFileName := fmt.Sprintf("sbom_%s.json", target.Type)
+	sbomFileName := fmt.Sprintf("sbom_%s.json", target.ProjectType)
 	sbomFilePath := filepath.Join(repo.Path, sbomFileName)
 
-	cmd := exec.Command("cdxgen", "--fail-on-error", "-t", target.Type, "-o", sbomFileName)
+	cmd := exec.Command("cdxgen", "--fail-on-error", "-t", target.ProjectType, "-o", sbomFileName)
 
 	if target.Directory != nil {
 		cmd.Args = append(cmd.Args, *target.Directory)
@@ -45,7 +50,7 @@ func (a CdxgenAnalyzer) AnalyzeProject(repo gittool.ClonedRepo, target config.Re
 	}
 	return models.Sbom{
 		ProjectId:   target.ProjectId,
-		ProjectType: target.Type,
+		ProjectType: target.ProjectType,
 		Data:        sbomstring,
 	}, nil
 }

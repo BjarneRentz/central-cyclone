@@ -32,7 +32,7 @@ type DependencyTrackConfig struct {
 type Application struct {
 	Name     string    `json:"name"`
 	Type     string    `json:"type"`
-	repoPath *string   `json:"repoPath", omitempty`
+	RepoPath *string   `json:"repoPath", omitempty`
 	Projects []Project `json:"projects"`
 }
 

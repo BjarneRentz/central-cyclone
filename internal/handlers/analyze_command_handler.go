@@ -47,7 +47,7 @@ func uploadSbom(uploader upload.Uploader, sbom models.Sbom) error {
 func analyzeRepo(repo *config.Repo, gitTool gittool.Cloner, workspaceHandler workspace.Workspace, uploader upload.Uploader) error {
 	slog.Info("🔎 Analyzing repository", "repo", repo.Url)
 
-	analyzer := analyzer.CdxgenAnalyzer{}
+	cdxAnalyzer := analyzer.CdxgenAnalyzer{}
 
 	clonedRepo, err := gitTool.CloneRepo(repo.Url)
 	if err != nil {
@@ -57,7 +57,14 @@ func analyzeRepo(repo *config.Repo, gitTool gittool.Cloner, workspaceHandler wor
 
 	for _, t := range repo.Targets {
 		slog.Info("🔬 Analyzing repo", "repo", repo.Url, "target", t.Type)
-		sbom, err := analyzer.AnalyzeProject(clonedRepo, t)
+
+		scanTarget := &analyzer.ScanTarget{
+			ProjectId:   t.ProjectId,
+			ProjectType: t.Type,
+			Directory:   t.Directory,
+		}
+
+		sbom, err := cdxAnalyzer.AnalyzeProject(clonedRepo, scanTarget)
 		if err != nil {
 			return fmt.Errorf("error analyzing project: %v", err)
 		}

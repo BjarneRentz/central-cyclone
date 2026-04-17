@@ -30,7 +30,7 @@ func TestSyncProjects_CreatesWhenProjectDoesNotExist(t *testing.T) {
 	fc := &fakeClient{getProjectErr: &dtrack.APIError{StatusCode: 404}}
 	ps := &ProjectSyncer{Client: fc}
 
-	projects := []config.Project{{Name: "testapp", Version: "1.2.3"}}
+	projects := []config.Project{{Name: "testapp", Environment: "1.2.3"}}
 
 	if err := ps.SyncProjects(context.Background(), projects); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -52,7 +52,7 @@ func TestSyncProjects_CreatesWhenLookupReturnsEmptyName(t *testing.T) {
 	fc := &fakeClient{getProjectResp: dtrack.Project{}}
 	ps := &ProjectSyncer{Client: fc}
 
-	projects := []config.Project{{Name: "another", Version: "0.0.1"}}
+	projects := []config.Project{{Name: "another", Environment: "0.0.1"}}
 
 	if err := ps.SyncProjects(context.Background(), projects); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -74,7 +74,7 @@ func TestSyncProjects_DoesNotCreateWhenProjectExists(t *testing.T) {
 	fc := &fakeClient{getProjectResp: dtrack.Project{Name: "exist", Version: "1.0.0"}}
 	ps := &ProjectSyncer{Client: fc}
 
-	projects := []config.Project{{Name: "exist", Version: "1.0.0"}}
+	projects := []config.Project{{Name: "exist", Environment: "1.0.0"}}
 
 	if err := ps.SyncProjects(context.Background(), projects); err != nil {
 		t.Fatalf("unexpected error: %v", err)

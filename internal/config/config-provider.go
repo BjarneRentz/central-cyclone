@@ -1,6 +1,9 @@
 package config
 
-import "fmt"
+import (
+	"central-cyclone/internal/analyzer"
+	"fmt"
+)
 
 type ConfigProvider struct {
 	settings           *Settings
@@ -33,4 +36,31 @@ func (c *ConfigProvider) GetApplicationRepo(applicationName string) (string, err
 		return "", fmt.Errorf("no repository found for application: %s", applicationName)
 	}
 	return repoUrl, nil
+}
+
+func (c *ConfigProvider) getApplication(applicationName string) *Application {
+	for _, app := range c.settings.Applications {
+		if app.Name == applicationName {
+			return &app
+		}
+	}
+	return nil
+}
+
+func (c *ConfigProvider) GetScanTargetForApplication(applicationName, env string) (*analyzer.ScanTarget, error) {
+	applicationConfig := c.getApplication(applicationName)
+	if applicationConfig == nil {
+		return nil, fmt.Errorf("application config not found for application: %s", applicationName)
+	}
+
+	for _, project := range applicationConfig.Projects {
+		if project.Environment == env {
+			return &analyzer.ScanTarget{
+				ProjectId:   *project.ProjectId,
+				ProjectType: applicationConfig.Type,
+				Directory:   applicationConfig.RepoPath,
+			}, nil
+		}
+	}
+	return nil, fmt.Errorf("project config not found for application: %s and environment: %s", applicationName, env)
 }
