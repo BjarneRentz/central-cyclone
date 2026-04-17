@@ -23,6 +23,10 @@ func (m *MockCloner) CloneRepo(repoURL string) (gittool.ClonedRepo, error) {
 	return m.cloneRepoResult, nil
 }
 
+func (m *MockCloner) CloneOrUpdateRepo(repoURL string) (gittool.ClonedRepo, error) {
+	return m.CloneRepo(repoURL)
+}
+
 // MockWorkspace implements workspace.Workspace for testing
 type MockWorkspace struct {
 	readFileFromRepoCallCount int

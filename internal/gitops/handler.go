@@ -35,10 +35,15 @@ func (h CreateSbomChangeHandler) HandleAppChange(ctx context.Context, applicatio
 		slog.Error("Failed to get application repo URL", "application", applicationName, "error", err)
 		return err
 	}
-	// To to, improve this, such that we do not need to clone the repo again, as we already have it in the workspace from the sync process. We just need to pull the latest changes.
-	clonedRepo, err := h.gitTool.CloneRepo(appRepoUrl)
+	// Clone or update the repo and checkout the specific version
+	clonedRepo, err := h.gitTool.CloneOrUpdateRepo(appRepoUrl)
 	if err != nil {
-		slog.Error("Failed to clone application repo", "repoUrl", appRepoUrl, "error", err)
+		slog.Error("Failed to clone or update application repo", "repoUrl", appRepoUrl, "version", version, "error", err)
+		return err
+	}
+
+	err = clonedRepo.CheckoutTag(version)
+	if err != nil {
 		return err
 	}
 
