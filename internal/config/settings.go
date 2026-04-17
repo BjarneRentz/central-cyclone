@@ -11,7 +11,7 @@ type Settings struct {
 	DependencyTrack  DependencyTrackConfig `json:"dependencyTrack"`
 	Applications     []Application         `json:"applications"`
 	GitOpsRepos      []GitOpsRepo          `json:"gitOpsRepos"`
-	ApllicationRepos []ApplicationRepo     `json:"applicationRepos"`
+	ApplicationRepos []ApplicationRepo     `json:"applicationRepos"`
 }
 
 type Repo struct {
@@ -32,14 +32,15 @@ type DependencyTrackConfig struct {
 type Application struct {
 	Name     string    `json:"name"`
 	Type     string    `json:"type"`
+	repoPath *string   `json:"repoPath", omitempty`
 	Projects []Project `json:"projects"`
 }
 
 type Project struct {
-	Name      string  `json:"name"`
-	Version   string  `json:"version"`
-	IsLatest  bool    `json:"isLatest"`
-	ProjectId *string `json:"projectId"`
+	Name        string  `json:"name"`
+	Environment string  `json:"environment"`
+	IsLatest    bool    `json:"isLatest"`
+	ProjectId   *string `json:"projectId"`
 }
 
 type GitOpsRepo struct {
