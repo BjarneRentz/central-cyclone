@@ -5,15 +5,17 @@ import (
 	"central-cyclone/internal/gittool"
 	"central-cyclone/internal/query"
 	"central-cyclone/internal/workspace"
+	"context"
 	"fmt"
 	"log/slog"
 )
 
 type Syncer struct {
-	state          SyncState
-	gitTool        gittool.Cloner
-	workspace      workspace.Workspace
-	valueExtractor query.ValueExtractor
+	state            SyncState
+	gitTool          gittool.Cloner
+	workspace        workspace.Workspace
+	valueExtractor   query.ValueExtractor
+	appChangeHandler AppChangedHandler
 }
 
 // NewSyncer creates a new instance of Syncer with the provided git tool and workspace
@@ -22,9 +24,10 @@ func NewSyncer(gitTool gittool.Cloner, workspace workspace.Workspace) *Syncer {
 		state: SyncState{
 			GitOpsRepos: make(map[string]*GitOpsRepoState),
 		},
-		gitTool:        gitTool,
-		workspace:      workspace,
-		valueExtractor: query.NewYqValueExtractor(),
+		gitTool:          gitTool,
+		workspace:        workspace,
+		valueExtractor:   query.NewYqValueExtractor(),
+		appChangeHandler: NoOpsAppChangedHandler{},
 	}
 }
 
@@ -154,6 +157,9 @@ func (s *Syncer) checkUnhandledChanges(repoState *GitOpsRepoState) {
 		if appState.Handled {
 			continue
 		}
+		// ToDo, proper Go routine
+		s.appChangeHandler.HandleAppChange(context.TODO(), appState.AppName, appState.VersionIdentifier.env, appState.CurrentVersion)
+		appState.Handled = true
 		slog.Info("App changed, handle new version", "app", appState.AppName, "env", appState.VersionIdentifier.env, "version", appState.CurrentVersion)
 	}
 }
