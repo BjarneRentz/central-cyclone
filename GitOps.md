@@ -2,10 +2,11 @@
 
 The GitOps mode enables the automated creation of sboms for different deployed environements depending on the state of you GitOps repository. This has the advantage, that you sboms are always up to date while you teams still do not have to adapt any pipeline or release process. Central Cyclone will use you single point of truth - the GitOps repo - to get the deployed version and create a matching SBOM for it.
 
+## ToDos
+- ~~Rename Version to environment in DependencyTrack Projects to reduce confusion~~
+- ~~Fix missing application folder in the gitops config~~ => currently part of the Application root config, could also be within the "applicationRepos" section
 
 ## Config
-
-ToDo: Rename Version to environment in DependencyTrack Projects to reduce confusion
 
 The config is quite complex on the first sight. This is due to the lose coupling betweens the applications themself, their repositories, the GitOps repo(s) and the corresponding DependencyTrack Project for each app in each of its versions. For a better understanding, we first define the terminology.
 
@@ -23,28 +24,31 @@ The config is quite complex on the first sight. This is due to the lose coupling
 "applications": [
     {
         "name": "Basket-Service Backend",
+        "type": "nuget",
+        "repoPath": "Backend",  // Optional Property, if multiple sources are within one repo
         "dependencyTrackProjects": [
             {
                 "name": Basket-Service Backend (Dev),
-                "version": "Dev",
+                "environment": "Dev",
                 "projectId": "ksdf-1231-sdf-13-"
             },
             {
                 "name": Basket-Service Backend (Staging),
-                "version": "Staging",
+                "environment": "Staging",
                 "projectId": "sjkdfs-234-sd-sdfs-"
             }
         ],
         "name": "Order-Service Backend",
+        "type" "nuget",
         "dependencyTrackProjects": [
             {
                 "name": Order-Service Backend (Dev),
-                "version": "Dev", // Required to match the gitops app with its environement to the corresponding DependencyTrack project
+                "environment": "Dev", // Required to match the gitops app with its environement to the corresponding DependencyTrack project
                 "projectId": "ksdf-1231-sdf-13-"
             },
             {
                 "name": Order-Service Backend (Staging),
-                "version": "Staging",
+                "environment": "Staging",
                 "projectId": "sjkdfs-234-sd-sdfs-"
             }
         ]
