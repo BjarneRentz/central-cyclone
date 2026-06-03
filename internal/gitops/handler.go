@@ -59,7 +59,6 @@ func (h CreateSbomChangeHandler) HandleAppChange(ctx context.Context, applicatio
 		return err
 	}
 
-	// 3. Upload to corresponding DependencyTrack Project
 	err = h.dependencyTrackUploader.UploadSBOM(sbom)
 	if err != nil {
 		slog.Error("Failed to upload SBOM to DependencyTrack", "application", applicationName, "environment", environment, "error", err)

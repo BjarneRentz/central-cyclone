@@ -18,7 +18,6 @@ type Syncer struct {
 	appChangeHandler AppChangedHandler
 }
 
-// NewSyncer creates a new instance of Syncer with the provided git tool and workspace
 func NewSyncer(gitTool gittool.Cloner, workspace workspace.Workspace) *Syncer {
 	return &Syncer{
 		state: SyncState{
