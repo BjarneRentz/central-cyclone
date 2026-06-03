@@ -5,6 +5,7 @@ import (
 	"central-cyclone/internal/gitops"
 	"central-cyclone/internal/gittool"
 	"central-cyclone/internal/workspace"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -19,6 +20,8 @@ var GitOpsCmd = &cobra.Command{
 	Use:   "gitops",
 	Short: "Starts the gitops mode of central cyclone",
 	RunE: func(cmd *cobra.Command, args []string) error {
+
+		fmt.Println("⚠️ The gitops mode is currently in alpha mode")
 		settings, err := extensions.GetSettings(cmd)
 		if err != nil {
 			slog.Error("Could not get settings from context", "error", err)

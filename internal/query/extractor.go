@@ -3,6 +3,7 @@ package query
 import (
 	"bytes"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/mikefarah/yq/v4/pkg/yqlib"
@@ -24,6 +25,9 @@ func NewYqValueExtractor() *YqValueExtractor {
 //   - ".spec.version" -> gets the version
 //   - ".items[0].image" -> gets the image from first array element
 func (e *YqValueExtractor) ExtractValue(content []byte, yamlPath string) (string, error) {
+
+	yqlib.GetLogger().SetLevel(slog.LevelWarn)
+
 	if len(content) == 0 {
 		return "", fmt.Errorf("content is empty")
 	}
