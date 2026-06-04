@@ -33,6 +33,9 @@ func (m DefaultRepoMapper) GetFolderName(repoURL string) (string, error) {
 	}
 
 	switch parsedURL.Host {
+
+	case "":
+		return strings.Join(pathParts, "_"), nil
 	case "dev.azure.com":
 		// Azure DevOps: /org/project/_git/repo
 		for i, part := range pathParts {

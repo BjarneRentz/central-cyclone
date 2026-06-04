@@ -3,30 +3,31 @@ package handlers
 import (
 	"central-cyclone/internal/analyzer"
 	"central-cyclone/internal/config"
-	"central-cyclone/internal/sbom"
+	"central-cyclone/internal/gittool"
+	"central-cyclone/internal/models"
 	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
 	"fmt"
 	"log/slog"
 )
 
-func AnalyzeAndSave(settings *config.Settings, workspaceHandler workspace.Workspace) {
+func AnalyzeAndSave(settings *config.Settings, gitTool gittool.Cloner, workspaceHandler workspace.Workspace) {
 	if settings != nil && len(settings.Repositories) != 0 {
-		analyzeRepos(settings.Repositories, workspaceHandler, nil)
+		analyzeRepos(settings.Repositories, gitTool, workspaceHandler, nil)
 	}
 }
 
-func AnalyzeAndUpload(settings *config.Settings, workspaceHandler workspace.Workspace, uploader upload.Uploader) {
+func AnalyzeAndUpload(settings *config.Settings, gitTool gittool.Cloner, workspaceHandler workspace.Workspace, uploader upload.Uploader) {
 	if settings != nil && len(settings.Repositories) != 0 {
-		analyzeRepos(settings.Repositories, workspaceHandler, uploader)
+		analyzeRepos(settings.Repositories, gitTool, workspaceHandler, uploader)
 	}
 }
 
-func analyzeRepos(repoSettings []config.Repo, workspaceHandler workspace.Workspace, uploader upload.Uploader) {
+func analyzeRepos(repoSettings []config.Repo, gitTool gittool.Cloner, workspaceHandler workspace.Workspace, uploader upload.Uploader) {
 	slog.Info("Found repositories to analyze", "count", len(repoSettings))
 
 	for _, repo := range repoSettings {
-		err := analyzeRepo(&repo, workspaceHandler, uploader)
+		err := analyzeRepo(&repo, gitTool, workspaceHandler, uploader)
 		if err != nil {
 			slog.Error("Could not analyze repo", "repo", repo.Url, "error", err)
 		}
@@ -34,7 +35,7 @@ func analyzeRepos(repoSettings []config.Repo, workspaceHandler workspace.Workspa
 
 }
 
-func uploadSbom(uploader upload.Uploader, sbom sbom.Sbom) error {
+func uploadSbom(uploader upload.Uploader, sbom models.Sbom) error {
 	err := uploader.UploadSBOM(sbom)
 	if err != nil {
 		slog.Error("Could not upload SBOM", "error", err)
@@ -43,12 +44,12 @@ func uploadSbom(uploader upload.Uploader, sbom sbom.Sbom) error {
 	return nil
 }
 
-func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace, uploader upload.Uploader) error {
+func analyzeRepo(repo *config.Repo, gitTool gittool.Cloner, workspaceHandler workspace.Workspace, uploader upload.Uploader) error {
 	slog.Info("🔎 Analyzing repository", "repo", repo.Url)
 
-	analyzer := analyzer.CdxgenAnalyzer{}
+	cdxAnalyzer := analyzer.CdxgenAnalyzer{}
 
-	clonedRepo, err := workspaceHandler.CloneRepoToWorkspace(repo.Url)
+	clonedRepo, err := gitTool.CloneRepo(repo.Url)
 	if err != nil {
 		slog.Error("Could not clone repository", "repo", repo.Url, "error", err)
 		return fmt.Errorf("error cloning repository: %w", err)
@@ -56,7 +57,14 @@ func analyzeRepo(repo *config.Repo, workspaceHandler workspace.Workspace, upload
 
 	for _, t := range repo.Targets {
 		slog.Info("🔬 Analyzing repo", "repo", repo.Url, "target", t.Type)
-		sbom, err := analyzer.AnalyzeProject(clonedRepo, t)
+
+		scanTarget := &analyzer.ScanTarget{
+			ProjectId:   t.ProjectId,
+			ProjectType: t.Type,
+			Directory:   t.Directory,
+		}
+
+		sbom, err := cdxAnalyzer.AnalyzeProject(clonedRepo, scanTarget)
 		if err != nil {
 			return fmt.Errorf("error analyzing project: %v", err)
 		}

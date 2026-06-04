@@ -1,8 +1,7 @@
 package workspace
 
 import (
-	"central-cyclone/internal/gittool"
-	"central-cyclone/internal/sbom"
+	"central-cyclone/internal/models"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -20,7 +19,6 @@ type localWorkspace struct {
 	path       string
 	reposPath  string
 	sbomsPath  string
-	gitCloner  gittool.Cloner
 	fs         FSHelper
 	namer      SBOMNamer
 	repoMapper RepoURLMapper
@@ -28,29 +26,24 @@ type localWorkspace struct {
 
 type Workspace interface {
 	Clear() error
-	CloneRepoToWorkspace(repoUrl string) (ClonedRepo, error)
-	SaveSbom(sbom sbom.Sbom) error
+	CreateRepoFolder(repiUrl string) (string, error)
+	SaveSbom(sbom models.Sbom) error
+	ReadFileFromRepo(repoPath string, relativePath string) ([]byte, error)
 }
 
-func (w localWorkspace) CloneRepoToWorkspace(repoUrl string) (ClonedRepo, error) {
+func (w localWorkspace) CreateRepoFolder(repoUrl string) (string, error) {
 	folderName, err := w.repoMapper.GetFolderName(repoUrl)
 	if err != nil {
-		return ClonedRepo{}, fmt.Errorf("failed to get folder name from repo URL: %w", err)
+		return "", fmt.Errorf("failed to get folder name from repo URL: %w", err)
 	}
 	targetDir := filepath.Join(w.reposPath, folderName)
 
 	if err := w.fs.CreateFolderIfNotExists(targetDir); err != nil {
-		return ClonedRepo{}, fmt.Errorf("failed to create target dir: %w", err)
+		return "", fmt.Errorf("failed to create target dir: %w", err)
 	}
 
-	err = w.gitCloner.CloneRepoToDir(repoUrl, targetDir)
-	if err != nil {
-		return ClonedRepo{}, fmt.Errorf("failed to clone repo: %w", err)
-	}
-	return ClonedRepo{
-		Path:    targetDir,
-		RepoUrl: repoUrl,
-	}, nil
+	return targetDir, nil
+
 }
 
 func (w localWorkspace) Clear() error {
@@ -64,7 +57,7 @@ func (w localWorkspace) Clear() error {
 	return nil
 }
 
-func (w localWorkspace) SaveSbom(sbom sbom.Sbom) error {
+func (w localWorkspace) SaveSbom(sbom models.Sbom) error {
 	sbomPath := w.namer.GenerateSBOMPath(w.sbomsPath, sbom)
 	data, err := json.Marshal(sbom)
 	if err != nil {
@@ -75,6 +68,34 @@ func (w localWorkspace) SaveSbom(sbom sbom.Sbom) error {
 	}
 	slog.Info("💾 Saved SBOM", "path", sbomPath)
 	return nil
+}
+
+// ReadFileFromRepo reads a file from a cloned repository at the given relative path
+// It returns the raw file contents as bytes
+// Includes path traversal protection to prevent accessing files outside the repository
+func (w localWorkspace) ReadFileFromRepo(repoPath string, relativePath string) ([]byte, error) {
+	if repoPath == "" {
+		return nil, fmt.Errorf("repoPath cannot be empty")
+	}
+	if relativePath == "" {
+		return nil, fmt.Errorf("relativePath cannot be empty")
+	}
+
+	filePath := filepath.Join(repoPath, relativePath)
+
+	// Prevent path traversal attacks - ensure the resolved path is within the repo
+	cleanedPath := filepath.Clean(filePath)
+	cleanedRepoPath := filepath.Clean(repoPath)
+	if !filepath.HasPrefix(cleanedPath, cleanedRepoPath) {
+		return nil, fmt.Errorf("path traversal detected: %s is outside repository", relativePath)
+	}
+
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file %s from repo: %w", relativePath, err)
+	}
+
+	return data, nil
 }
 
 func CreateLocalWorkspace() (Workspace, error) {
@@ -102,7 +123,6 @@ func CreateLocalWorkspace() (Workspace, error) {
 		path:       fullWorkFolderPath,
 		reposPath:  fullReposPath,
 		sbomsPath:  fullSbomsPath,
-		gitCloner:  gittool.LocalGitCloner{},
 		fs:         fs,
 		namer:      DefaultSBOMNamer{},
 		repoMapper: DefaultRepoMapper{},

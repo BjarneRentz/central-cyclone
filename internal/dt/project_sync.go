@@ -16,44 +16,44 @@ type ProjectSyncer struct {
 func (ps *ProjectSyncer) SyncProjects(ctx context.Context, projects []config.Project) error {
 
 	for _, proj := range projects {
-		maybeProject, err := ps.Client.GetProject(ctx, proj.Name, proj.Version)
+		maybeProject, err := ps.Client.GetProject(ctx, proj.Name, proj.Environment)
 		if err != nil {
 			var apiErr *dtrack.APIError
 			if errors.As(err, &apiErr) && apiErr.StatusCode == 404 {
 				// Project not found in Dependency-Track -> create it
 				newProject := dtrack.Project{
 					Name:     proj.Name,
-					Version:  proj.Version,
+					Version:  proj.Environment,
 					Active:   true,
 					IsLatest: &proj.IsLatest,
 				}
 				createdProject, err := ps.Client.CreateProject(ctx, newProject)
 				if err != nil {
-					slog.Error("Could not create project in Dependency-Track", "project-name", proj.Name, "version", proj.Version, "error", err)
+					slog.Error("Could not create project in Dependency-Track", "project-name", proj.Name, "version", proj.Environment, "error", err)
 					continue
 				}
 				slog.Info("Created new project in Dependency-Track", "project-name", createdProject.Name, "version", createdProject.Version)
 				continue
 			}
 
-			slog.Warn("Could not perform project lookup", "project-name", proj.Name, "version", proj.Version, "error", err)
+			slog.Warn("Could not perform project lookup", "project-name", proj.Name, "version", proj.Environment, "error", err)
 			continue
 		}
 
 		if maybeProject.Name == "" {
 			newProject := dtrack.Project{
 				Name:    proj.Name,
-				Version: proj.Version,
+				Version: proj.Environment,
 			}
 			createdProject, err := ps.Client.CreateProject(ctx, newProject)
 			if err != nil {
-				slog.Error("Could not create project in Dependency-Track", "project-name", proj.Name, "version", proj.Version, "error", err)
+				slog.Error("Could not create project in Dependency-Track", "project-name", proj.Name, "version", proj.Environment, "error", err)
 				continue
 			}
 			slog.Info("Created new project in Dependency-Track", "project-name", createdProject.Name, "version", createdProject.Version)
 
 		} else {
-			slog.Info("Project already exists in Dependency-Track", "project-name", proj.Name, "version", proj.Version)
+			slog.Info("Project already exists in Dependency-Track", "project-name", proj.Name, "version", proj.Environment)
 		}
 	}
 	return nil

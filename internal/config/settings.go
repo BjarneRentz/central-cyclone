@@ -7,9 +7,11 @@ import (
 )
 
 type Settings struct {
-	Repositories    []Repo                `json:"repositories"`
-	DependencyTrack DependencyTrackConfig `json:"dependencyTrack"`
-	Applications    []Application         `json:"applications"`
+	Repositories     []Repo                `json:"repositories"`
+	DependencyTrack  DependencyTrackConfig `json:"dependencyTrack"`
+	Applications     []Application         `json:"applications"`
+	GitOpsRepos      []GitOpsRepo          `json:"gitOpsRepos"`
+	ApplicationRepos []ApplicationRepo     `json:"applicationRepos"`
 }
 
 type Repo struct {
@@ -30,14 +32,36 @@ type DependencyTrackConfig struct {
 type Application struct {
 	Name     string    `json:"name"`
 	Type     string    `json:"type"`
+	RepoPath *string   `json:"repoPath", omitempty`
 	Projects []Project `json:"projects"`
 }
 
 type Project struct {
-	Name      string  `json:"name"`
-	Version   string  `json:"version"`
-	IsLatest  bool    `json:"isLatest"`
-	ProjectId *string `json:"projectId"`
+	Name        string  `json:"name"`
+	Environment string  `json:"environment"`
+	IsLatest    bool    `json:"isLatest"`
+	ProjectId   *string `json:"projectId"`
+}
+
+type GitOpsRepo struct {
+	Url                string              `json:"url"`
+	GitOpsApplications []GitOpsApplication `json:"gitOpsApplications"`
+}
+
+type GitOpsApplication struct {
+	ApplicationName    string              `json:"applicationName"`
+	VersionIdentifiers []VersionIdentifier `json:"versionIdentifiers"`
+}
+
+type VersionIdentifier struct {
+	Environment string `json:"environment"`
+	Filepath    string `json:"filepath"`
+	YamlPath    string `json:"yamlPath"`
+}
+
+type ApplicationRepo struct {
+	Applications []string `json:"applications"`
+	RepoUrl      string   `json:"repoUrl"`
 }
 
 func LoadFromFile(filePath string) (*Settings, error) {

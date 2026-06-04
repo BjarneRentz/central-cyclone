@@ -1,9 +1,8 @@
 package analyzer
 
 import (
-	"central-cyclone/internal/config"
-	"central-cyclone/internal/sbom"
-	"central-cyclone/internal/workspace"
+	"central-cyclone/internal/gittool"
+	"central-cyclone/internal/models"
 	"fmt"
 	"log/slog"
 	"os"
@@ -12,17 +11,23 @@ import (
 )
 
 type Analyzer interface {
-	AnalyzeProject(repo workspace.ClonedRepo, target config.RepoTarget) (sbom.Sbom, error)
+	AnalyzeProject(repo gittool.ClonedRepo, target *ScanTarget) (models.Sbom, error)
+}
+
+type ScanTarget struct {
+	ProjectId   string
+	ProjectType string
+	Directory   *string
 }
 
 type CdxgenAnalyzer struct{}
 
-func (a CdxgenAnalyzer) AnalyzeProject(repo workspace.ClonedRepo, target config.RepoTarget) (sbom.Sbom, error) {
+func (a CdxgenAnalyzer) AnalyzeProject(repo gittool.ClonedRepo, target *ScanTarget) (models.Sbom, error) {
 
-	sbomFileName := fmt.Sprintf("sbom_%s.json", target.Type)
+	sbomFileName := fmt.Sprintf("sbom_%s.json", target.ProjectType)
 	sbomFilePath := filepath.Join(repo.Path, sbomFileName)
 
-	cmd := exec.Command("cdxgen", "--fail-on-error", "-t", target.Type, "-o", sbomFileName)
+	cmd := exec.Command("cdxgen", "--fail-on-error", "-t", target.ProjectType, "-o", sbomFileName)
 
 	if target.Directory != nil {
 		cmd.Args = append(cmd.Args, *target.Directory)
@@ -32,7 +37,7 @@ func (a CdxgenAnalyzer) AnalyzeProject(repo workspace.ClonedRepo, target config.
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		slog.Error("Creating sbom with cdxgen failed: ", "output", string(output), "error", err)
-		return sbom.Sbom{}, fmt.Errorf("cdxgen failed: %v\nOutput: %s", err, string(output))
+		return models.Sbom{}, fmt.Errorf("cdxgen failed: %v\nOutput: %s", err, string(output))
 	}
 
 	bytes, err := os.ReadFile(sbomFilePath)
@@ -41,11 +46,11 @@ func (a CdxgenAnalyzer) AnalyzeProject(repo workspace.ClonedRepo, target config.
 
 	if err != nil {
 		slog.Error("Failed to read created sbom file", "path", sbomFileName)
-		return sbom.Sbom{}, fmt.Errorf("failed to read sbom file: %v", err)
+		return models.Sbom{}, fmt.Errorf("failed to read sbom file: %v", err)
 	}
-	return sbom.Sbom{
+	return models.Sbom{
 		ProjectId:   target.ProjectId,
-		ProjectType: target.Type,
+		ProjectType: target.ProjectType,
 		Data:        sbomstring,
 	}, nil
 }

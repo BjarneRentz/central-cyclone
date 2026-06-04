@@ -26,7 +26,7 @@ var uploadCmd = &cobra.Command{
 
 		readonlyWorkspace := workspace.CreateLocalReadonlySbomWorkspace(sbomFolder, sbomNamer, repoMapper)
 
-		sboms, err := readonlyWorkspace.ReadSboms(settings.Repositories)
+		sboms, err := readonlyWorkspace.ReadSboms()
 		if err != nil {
 			slog.Error("Error reading SBOMs", "error", err)
 			return err
