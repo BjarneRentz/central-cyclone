@@ -62,7 +62,6 @@ func (c *ClonedRepo) Pull() error {
 	return nil
 }
 
-// CheckoutRevision checks out a specific tag
 func (c *ClonedRepo) CheckoutRevision(revision string) error {
 	repo, err := c.openRepository()
 	if err != nil {
@@ -74,33 +73,43 @@ func (c *ClonedRepo) CheckoutRevision(revision string) error {
 		return fmt.Errorf("failed to get worktree: %w", err)
 	}
 
-	slog.Info("🏷️  Checking out Revision", "repo", c.RepoUrl, "tag", revision)
+	slog.Info("🔄 Preparing checkout", "repo", c.RepoUrl, "revision", revision)
 
-	// 1. Resolve whatever the user gave us (Tag, Branch, Short-Hash, etc.)
-	hash, err := repo.ResolveRevision(plumbing.Revision(revision))
-	if err != nil {
-		return fmt.Errorf("failed to resolve revision %q: %w", revision, err)
+	var targetHash plumbing.Hash
+
+	// 1. FIRST CHOICE: If it's a direct 40-character SHA-1 hash, use it immediately.
+	// This completely bypasses the "reference not found" lookup error.
+	if plumbing.IsHash(revision) {
+		targetHash = plumbing.NewHash(revision)
+	} else {
+		// 2. SECOND CHOICE: Resolve it as a named reference (Tag, Branch, Short-Hash)
+		hash, err := repo.ResolveRevision(plumbing.Revision(revision))
+		if err != nil {
+			return fmt.Errorf("failed to resolve revision %q: %w", revision, err)
+		}
+		targetHash = *hash
+
+		// 3. FIX FOR ANNOTATED TAGS: Peel the tag to get the real commit hash
+		tagObj, err := repo.TagObject(targetHash)
+		if err == nil {
+			commit, err := tagObj.Commit()
+			if err != nil {
+				return fmt.Errorf("failed to get commit from annotated tag: %w", err)
+			}
+			targetHash = commit.Hash
+		}
 	}
 
-	targetHash := *hash
+	slog.Info("🏷️  Checking out", "repo", c.RepoUrl, "hash", targetHash.String())
 
-	// 2. Fix for Annotated Tags: Check if the resolved hash belongs to a tag object
-	tagObj, err := repo.TagObject(targetHash)
-	if err == nil {
-		// If no error occurred, it IS an annotated tag!
-		// We need to grab the actual commit hash it points to.
-		commit, err := tagObj.Commit()
-		if err != nil {
-			return fmt.Errorf("failed to get commit from annotated tag: %w", err)
-		}
-		targetHash = commit.Hash
-	} // If err != nil, it was already a commit, a branch, or a lightweight tag -> we are good!
-
-	// 3. Now you can safely checkout targetHash
+	// Perform the checkout using Force to ensure a clean slate
 	err = w.Checkout(&git.CheckoutOptions{
 		Hash:  targetHash,
 		Force: true,
 	})
+	if err != nil {
+		return fmt.Errorf("failed to checkout revision: %w", err)
+	}
 
 	return nil
 }

@@ -34,8 +34,7 @@ func (c LocalGitCloner) CloneRepo(repoURL string) (ClonedRepo, error) {
 	slog.Info("🛠️  Cloning repo into the workfolder", "repo", repoURL)
 
 	cloneOpts := &git.CloneOptions{
-		URL:   repoURL,
-		Depth: 1,
+		URL: repoURL,
 	}
 
 	// Handle authentication if GIT_TOKEN is provided

@@ -53,6 +53,7 @@ func (h CreateSbomChangeHandler) HandleAppChange(ctx context.Context, applicatio
 
 	err = clonedRepo.CheckoutRevision(version)
 	if err != nil {
+		slog.Error("Failed to checkout revision", "version", version, "error", err)
 		return err
 	}
 

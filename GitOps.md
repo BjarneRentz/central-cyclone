@@ -26,7 +26,7 @@ The config is quite complex on the first sight. This is due to the lose coupling
         "name": "Basket-Service Backend",
         "type": "nuget",
         "repoPath": "Backend",  // Optional Property, if multiple sources are within one repo
-        "dependencyTrackProjects": [
+        "projects": [
             {
                 "name": "Basket-Service Backend (Dev)",
                 "environment": "Dev",
