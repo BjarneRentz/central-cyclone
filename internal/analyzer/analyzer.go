@@ -27,7 +27,7 @@ func (a CdxgenAnalyzer) AnalyzeProject(repo gittool.ClonedRepo, target *ScanTarg
 	sbomFileName := fmt.Sprintf("sbom_%s.json", target.ProjectType)
 	sbomFilePath := filepath.Join(repo.Path, sbomFileName)
 
-	cmd := exec.Command("cdxgen", "--fail-on-error", "-t", target.ProjectType, "-o", sbomFileName)
+	cmd := exec.Command("cdxgen", "--fail-on-error", "-t", target.ProjectType, "-o", sbomFileName, "--spec-version", "1.6")
 
 	if target.Directory != nil {
 		cmd.Args = append(cmd.Args, *target.Directory)

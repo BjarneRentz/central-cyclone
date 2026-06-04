@@ -42,6 +42,10 @@ var GitOpsCmd = &cobra.Command{
 		configProvider := config.NewConfigProvider(settings)
 		analyzer := analyzer.CdxgenAnalyzer{}
 		uploader, err := upload.CreateDependencyTrackUploader(settings)
+		if err != nil {
+			slog.Error("Could not create DepependencyTrack Uploader", "error", err)
+			return err
+		}
 
 		createSbomHandler := gitops.NewCreateSbomChangeHandler(configProvider, gitTool, analyzer, uploader)
 
