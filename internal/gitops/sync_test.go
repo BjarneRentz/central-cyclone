@@ -65,7 +65,7 @@ func TestNewSyncer(t *testing.T) {
 	mockCloner := &MockCloner{}
 	mockWorkspace := &MockWorkspace{}
 
-	syncer := NewSyncer(mockCloner, mockWorkspace)
+	syncer := NewSyncer(mockCloner, mockWorkspace, NoOpsAppChangedHandler{})
 
 	if syncer == nil {
 		t.Error("NewSyncer returned nil")
@@ -101,7 +101,7 @@ func TestSyncer_Init_Success(t *testing.T) {
 		},
 	}
 
-	syncer := NewSyncer(mockCloner, mockWorkspace)
+	syncer := NewSyncer(mockCloner, mockWorkspace, NoOpsAppChangedHandler{})
 
 	gitOpsRepos := []config.GitOpsRepo{
 		{
@@ -161,7 +161,7 @@ func TestSyncer_Init_MultipleRepos(t *testing.T) {
 		},
 	}
 
-	syncer := NewSyncer(mockCloner, mockWorkspace)
+	syncer := NewSyncer(mockCloner, mockWorkspace, NoOpsAppChangedHandler{})
 
 	gitOpsRepos := []config.GitOpsRepo{
 		{
@@ -217,7 +217,7 @@ func TestSyncer_Init_CloneError(t *testing.T) {
 	}
 	mockWorkspace := &MockWorkspace{}
 
-	syncer := NewSyncer(mockCloner, mockWorkspace)
+	syncer := NewSyncer(mockCloner, mockWorkspace, NoOpsAppChangedHandler{})
 
 	gitOpsRepos := []config.GitOpsRepo{
 		{
@@ -263,7 +263,7 @@ func TestSyncer_Init_ReadFileError(t *testing.T) {
 		readFileFromRepoErr: readFileErr,
 	}
 
-	syncer := NewSyncer(mockCloner, mockWorkspace)
+	syncer := NewSyncer(mockCloner, mockWorkspace, NoOpsAppChangedHandler{})
 
 	gitOpsRepos := []config.GitOpsRepo{
 		{
@@ -306,7 +306,7 @@ func TestSyncer_Init_ExtractValueError(t *testing.T) {
 		},
 	}
 
-	syncer := NewSyncer(mockCloner, mockWorkspace)
+	syncer := NewSyncer(mockCloner, mockWorkspace, NoOpsAppChangedHandler{})
 
 	gitOpsRepos := []config.GitOpsRepo{
 		{
@@ -346,7 +346,7 @@ func TestSyncer_Init_MultipleAppsPerRepo(t *testing.T) {
 		},
 	}
 
-	syncer := NewSyncer(mockCloner, mockWorkspace)
+	syncer := NewSyncer(mockCloner, mockWorkspace, NoOpsAppChangedHandler{})
 
 	gitOpsRepos := []config.GitOpsRepo{
 		{
@@ -418,7 +418,7 @@ func TestSyncer_Init_EmptyRepoList(t *testing.T) {
 	mockCloner := &MockCloner{}
 	mockWorkspace := &MockWorkspace{}
 
-	syncer := NewSyncer(mockCloner, mockWorkspace)
+	syncer := NewSyncer(mockCloner, mockWorkspace, NoOpsAppChangedHandler{})
 
 	err := syncer.Init([]config.GitOpsRepo{})
 	if err != nil {
@@ -443,7 +443,7 @@ func TestSyncer_Init_AppStateProperties(t *testing.T) {
 		},
 	}
 
-	syncer := NewSyncer(mockCloner, mockWorkspace)
+	syncer := NewSyncer(mockCloner, mockWorkspace, NoOpsAppChangedHandler{})
 
 	gitOpsRepos := []config.GitOpsRepo{
 		{

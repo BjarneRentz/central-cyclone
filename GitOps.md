@@ -28,12 +28,12 @@ The config is quite complex on the first sight. This is due to the lose coupling
         "repoPath": "Backend",  // Optional Property, if multiple sources are within one repo
         "dependencyTrackProjects": [
             {
-                "name": Basket-Service Backend (Dev),
+                "name": "Basket-Service Backend (Dev)",
                 "environment": "Dev",
                 "projectId": "ksdf-1231-sdf-13-"
             },
             {
-                "name": Basket-Service Backend (Staging),
+                "name": "Basket-Service Backend (Staging)",
                 "environment": "Staging",
                 "projectId": "sjkdfs-234-sd-sdfs-"
             }
@@ -42,12 +42,12 @@ The config is quite complex on the first sight. This is due to the lose coupling
         "type" "nuget",
         "dependencyTrackProjects": [
             {
-                "name": Order-Service Backend (Dev),
+                "name": "Order-Service Backend (Dev)",
                 "environment": "Dev", // Required to match the gitops app with its environement to the corresponding DependencyTrack project
                 "projectId": "ksdf-1231-sdf-13-"
             },
             {
-                "name": Order-Service Backend (Staging),
+                "name": "Order-Service Backend (Staging)",
                 "environment": "Staging",
                 "projectId": "sjkdfs-234-sd-sdfs-"
             }
@@ -61,7 +61,7 @@ The config is quite complex on the first sight. This is due to the lose coupling
         "url": "https://github.com/my-git-ops-repo1",
         "gitOpsApplications": [
             {
-                "application": "Basket-Service Backend",
+                "applicationName": "Basket-Service Backend",
                 "versionIdentifiers": [
                     {
                         "environment": "Dev",
@@ -76,7 +76,7 @@ The config is quite complex on the first sight. This is due to the lose coupling
                 ]
             },
             {
-                "application": "Order-Service Backend",
+                "applicationName": "Order-Service Backend",
                 "versionIdentifiers": [
                     {
                         "environment": "Dev",
@@ -102,7 +102,7 @@ The config is quite complex on the first sight. This is due to the lose coupling
     },
     {
         "applications": ["Order-Service Backend"],
-        "repoUrl": "https://github.com/order-service
+        "repoUrl": "https://github.com/order-service"
     }
 ]
 

@@ -2,8 +2,11 @@ package gitops
 
 import (
 	"central-cyclone/cmd/extensions"
+	"central-cyclone/internal/analyzer"
+	"central-cyclone/internal/config"
 	"central-cyclone/internal/gitops"
 	"central-cyclone/internal/gittool"
+	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
 	"fmt"
 	"os"
@@ -36,8 +39,13 @@ var GitOpsCmd = &cobra.Command{
 		}
 
 		gitTool := gittool.CreateLocalGitCloner(ws)
+		configProvider := config.NewConfigProvider(settings)
+		analyzer := analyzer.CdxgenAnalyzer{}
+		uploader, err := upload.CreateDependencyTrackUploader(settings)
 
-		syncer := gitops.NewSyncer(gitTool, ws)
+		createSbomHandler := gitops.NewCreateSbomChangeHandler(configProvider, gitTool, analyzer, uploader)
+
+		syncer := gitops.NewSyncer(gitTool, ws, createSbomHandler)
 
 		err = syncer.Init(settings.GitOpsRepos)
 		if err != nil {

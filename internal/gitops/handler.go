@@ -20,6 +20,15 @@ func (h NoOpsAppChangedHandler) HandleAppChange(ctx context.Context, application
 	return nil
 }
 
+func NewCreateSbomChangeHandler(configProvider *config.ConfigProvider, gitTool gittool.Cloner, sbomAnalyzer analyzer.Analyzer, dependencyTrackUploader upload.Uploader) *CreateSbomChangeHandler {
+	return &CreateSbomChangeHandler{
+		configProvider:          configProvider,
+		gitTool:                 gitTool,
+		sbomAnalyzer:            sbomAnalyzer,
+		dependencyTrackUploader: dependencyTrackUploader,
+	}
+}
+
 // Creates a new SBOM for the given version
 type CreateSbomChangeHandler struct {
 	configProvider          *config.ConfigProvider
