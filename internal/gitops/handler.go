@@ -51,7 +51,7 @@ func (h CreateSbomChangeHandler) HandleAppChange(ctx context.Context, applicatio
 		return err
 	}
 
-	err = clonedRepo.CheckoutTag(version)
+	err = clonedRepo.CheckoutRevision(version)
 	if err != nil {
 		return err
 	}

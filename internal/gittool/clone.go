@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/go-git/go-git/v6"
+	"github.com/go-git/go-git/v6/plumbing/transport"
 	"github.com/go-git/go-git/v6/plumbing/transport/http"
 )
 
@@ -65,30 +66,32 @@ func (c LocalGitCloner) CloneOrUpdateRepo(repoURL string) (ClonedRepo, error) {
 
 	// Check if repository is already cloned
 	if _, err := os.Stat(filepath.Join(path, ".git")); err == nil {
-		// Repository exists, open and pull
-		slog.Info("📁 Repository already exists, updating", "repo", repoURL)
+		slog.Info("📁 Repository already exists, fetching updates", "repo", repoURL)
 		repo, err := git.PlainOpen(path)
 		if err != nil {
 			return ClonedRepo{}, fmt.Errorf("failed to open existing repository: %w", err)
 		}
 
-		w, err := repo.Worktree()
-		if err != nil {
-			return ClonedRepo{}, fmt.Errorf("failed to get worktree: %w", err)
-		}
-
-		pullOpts := &git.PullOptions{}
+		// Setup authentication
+		var auth transport.AuthMethod
 		token := os.Getenv("GIT_TOKEN")
 		if token != "" {
-			pullOpts.Auth = &http.BasicAuth{
+			auth = &http.BasicAuth{
 				Username: "git",
 				Password: token,
 			}
 		}
 
-		err = w.Pull(pullOpts)
+		// Fetch updates from the remote (updates all tags and remote branches)
+		err = repo.Fetch(&git.FetchOptions{
+			Auth:  auth,
+			Force: true,        // Ensures tags are updated/overwritten if changed on remote
+			Tags:  git.AllTags, // Explicitly pull down all tags
+		})
+
+		// git.NoErrAlreadyUpToDate means there was nothing new to download, which is perfectly fine!
 		if err != nil && err != git.NoErrAlreadyUpToDate {
-			return ClonedRepo{}, fmt.Errorf("failed to pull repository: %w", err)
+			return ClonedRepo{}, fmt.Errorf("failed to fetch repository updates: %w", err)
 		}
 
 		return ClonedRepo{
@@ -97,13 +100,11 @@ func (c LocalGitCloner) CloneOrUpdateRepo(repoURL string) (ClonedRepo, error) {
 			repo:    repo,
 		}, nil
 	} else {
-		// Repository doesn't exist, clone it using the existing CloneRepo method
+		// Repository doesn't exist, clone it
 		clonedRepo, err := c.CloneRepo(repoURL)
 		if err != nil {
 			return ClonedRepo{}, err
 		}
 		return clonedRepo, nil
 	}
-
-	return ClonedRepo{}, nil
 }
