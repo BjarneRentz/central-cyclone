@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/go-git/go-git/v6"
+	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/transport/http"
 )
 
@@ -61,8 +62,8 @@ func (c *ClonedRepo) Pull() error {
 	return nil
 }
 
-// CheckoutTag checks out a specific tag
-func (c *ClonedRepo) CheckoutTag(tag string) error {
+// CheckoutRevision checks out a specific tag
+func (c *ClonedRepo) CheckoutRevision(revision string) error {
 	repo, err := c.openRepository()
 	if err != nil {
 		return err
@@ -73,20 +74,33 @@ func (c *ClonedRepo) CheckoutTag(tag string) error {
 		return fmt.Errorf("failed to get worktree: %w", err)
 	}
 
-	slog.Info("🏷️  Checking out tag", "repo", c.RepoUrl, "tag", tag)
+	slog.Info("🏷️  Checking out Revision", "repo", c.RepoUrl, "tag", revision)
 
-	// Resolve tag to its hash
-	tagRef, err := repo.Tag(tag)
+	// 1. Resolve whatever the user gave us (Tag, Branch, Short-Hash, etc.)
+	hash, err := repo.ResolveRevision(plumbing.Revision(revision))
 	if err != nil {
-		return fmt.Errorf("failed to find tag %q: %w", tag, err)
+		return fmt.Errorf("failed to resolve revision %q: %w", revision, err)
 	}
 
+	targetHash := *hash
+
+	// 2. Fix for Annotated Tags: Check if the resolved hash belongs to a tag object
+	tagObj, err := repo.TagObject(targetHash)
+	if err == nil {
+		// If no error occurred, it IS an annotated tag!
+		// We need to grab the actual commit hash it points to.
+		commit, err := tagObj.Commit()
+		if err != nil {
+			return fmt.Errorf("failed to get commit from annotated tag: %w", err)
+		}
+		targetHash = commit.Hash
+	} // If err != nil, it was already a commit, a branch, or a lightweight tag -> we are good!
+
+	// 3. Now you can safely checkout targetHash
 	err = w.Checkout(&git.CheckoutOptions{
-		Hash: tagRef.Hash(),
+		Hash:  targetHash,
+		Force: true,
 	})
-	if err != nil {
-		return fmt.Errorf("failed to checkout tag: %w", err)
-	}
 
 	return nil
 }
