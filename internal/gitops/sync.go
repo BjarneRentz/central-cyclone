@@ -18,7 +18,7 @@ type Syncer struct {
 	appChangeHandler AppChangedHandler
 }
 
-func NewSyncer(gitTool gittool.Cloner, workspace workspace.Workspace) *Syncer {
+func NewSyncer(gitTool gittool.Cloner, workspace workspace.Workspace, changedHandler AppChangedHandler) *Syncer {
 	return &Syncer{
 		state: SyncState{
 			GitOpsRepos: make(map[string]*GitOpsRepoState),
@@ -26,7 +26,7 @@ func NewSyncer(gitTool gittool.Cloner, workspace workspace.Workspace) *Syncer {
 		gitTool:          gitTool,
 		workspace:        workspace,
 		valueExtractor:   query.NewYqValueExtractor(),
-		appChangeHandler: NoOpsAppChangedHandler{},
+		appChangeHandler: changedHandler,
 	}
 }
 

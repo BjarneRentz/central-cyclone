@@ -78,7 +78,7 @@ func TestSyncer_FullChain_LocalRepoClone(t *testing.T) {
 	cloner := gittool.CreateLocalGitCloner(tw)
 
 	// 3) create syncer using real cloner and temp workspace
-	s := NewSyncer(cloner, tw)
+	s := NewSyncer(cloner, tw, NoOpsAppChangedHandler{})
 
 	// 4) prepare config to point at the local repo (use the source path as URL)
 	g := config.GitOpsRepo{
