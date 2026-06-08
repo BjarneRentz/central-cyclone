@@ -7,6 +7,7 @@ import (
 	"central-cyclone/internal/models"
 	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
+	"context"
 	"fmt"
 	"log/slog"
 )
@@ -36,7 +37,7 @@ func analyzeRepos(repoSettings []config.Repo, gitTool gittool.Cloner, workspaceH
 }
 
 func uploadSbom(uploader upload.Uploader, sbom models.Sbom) error {
-	err := uploader.UploadSBOM(sbom)
+	err := uploader.UploadSBOM(context.TODO(), sbom)
 	if err != nil {
 		slog.Error("Could not upload SBOM", "error", err)
 		return err

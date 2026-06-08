@@ -54,7 +54,7 @@ type MockUploader struct {
 	called       bool
 }
 
-func (m *MockUploader) UploadSBOM(sbom models.Sbom) error {
+func (m *MockUploader) UploadSBOM(ctx context.Context, sbom models.Sbom) error {
 	m.called = true
 	m.receivedSbom = sbom
 	return m.err

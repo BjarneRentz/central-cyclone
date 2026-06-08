@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"context"
+	"sync"
+
 	"central-cyclone/cmd/extensions"
+	"central-cyclone/internal/models"
 	"central-cyclone/internal/upload"
 	"central-cyclone/internal/workspace"
 	"log/slog"
@@ -38,14 +42,39 @@ var uploadCmd = &cobra.Command{
 			return err
 		}
 
+		ctx := context.Background()
+
+		// Limit concurrent uploads to 5
+		maxConcurrency := 5
+		semaphore := make(chan struct{}, maxConcurrency)
+
+		var wg sync.WaitGroup
+		var uploadErr error
+		var mu sync.Mutex
+
 		for _, sbom := range sboms {
-			err = uploader.UploadSBOM(sbom)
-			if err != nil {
-				slog.Error("Error uploading SBOM", "error", err)
-				continue
-			}
+			wg.Add(1)
+			go func(s models.Sbom) {
+				defer wg.Done()
+
+				// Acquire semaphore
+				semaphore <- struct{}{}
+				defer func() { <-semaphore }()
+
+				if err := uploader.UploadSBOM(ctx, s); err != nil {
+					mu.Lock()
+					slog.Error("Error uploading SBOM", "error", err)
+					uploadErr = err
+					mu.Unlock()
+				}
+			}(sbom)
+
 		}
-		return nil
+
+		wg.Wait()
+		close(semaphore)
+
+		return uploadErr
 	},
 }
 

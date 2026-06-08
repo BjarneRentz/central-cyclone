@@ -3,12 +3,13 @@ package upload
 import (
 	"central-cyclone/internal/config"
 	"central-cyclone/internal/models"
+	"context"
 	"fmt"
 	"os"
 )
 
 type Uploader interface {
-	UploadSBOM(sbom models.Sbom) error
+	UploadSBOM(ctx context.Context, sbom models.Sbom) error
 }
 
 func CreateDependencyTrackUploader(settings *config.Settings) (Uploader, error) {
