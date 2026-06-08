@@ -3,6 +3,7 @@ package upload
 import (
 	"bytes"
 	"central-cyclone/internal/models"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -15,7 +16,7 @@ type DependencyTrackUploader struct {
 	apiKey    string
 }
 
-func (uploader DependencyTrackUploader) UploadSBOM(sbom models.Sbom) error {
+func (uploader DependencyTrackUploader) UploadSBOM(ctx context.Context, sbom models.Sbom) error {
 	url := uploader.serverURL + "/api/v1/bom"
 	encodedSbom, err := getEncodedSbom(sbom)
 	if err != nil {
@@ -26,6 +27,9 @@ func (uploader DependencyTrackUploader) UploadSBOM(sbom models.Sbom) error {
 	if err != nil {
 		return err
 	}
+
+	// Use context for cancellation
+	req = req.WithContext(ctx)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
