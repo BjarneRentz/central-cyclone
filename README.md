@@ -28,6 +28,12 @@ Central Cyclone is a centralized SBOM (Software Bill of Materials) generation se
 
 ## Usage
 
+### GitOps Mode
+
+⚠️ The GitOps mode is currently in alpha, config and behavior may change with any release.
+Find detailed information under [GitOps](./GitOps.md)
+
+
 ### Configuration
 Define your targets and settings in a JSON config file. See `exampleConfig.json` for a sample configuration. It looks like this 
 ```json
