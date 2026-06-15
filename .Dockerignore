@@ -1,4 +1,27 @@
+# Directories
 .devcontainer
 .github
+.git
+.vscode
+assets
+
+# Files
+.Dockerignore
+Dockerfile
+.gitignore
+LICENSE
+GitOps.md
 README.md
+*.md
 exampleConfig.json
+testConfig.json
+
+# IDE and editor files
+.idea
+.vs
+*.swp
+*.swo
+
+# Logs and temporary files
+*.log
+*.tmp
