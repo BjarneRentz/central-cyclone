@@ -12,6 +12,7 @@ type Settings struct {
 	Applications     []Application         `json:"applications"`
 	GitOpsRepos      []GitOpsRepo          `json:"gitOpsRepos"`
 	ApplicationRepos []ApplicationRepo     `json:"applicationRepos"`
+	GitOps           GitOpsConfig          `json:"gitOps"`
 }
 
 type Repo struct {
@@ -27,6 +28,10 @@ type RepoTarget struct {
 
 type DependencyTrackConfig struct {
 	Url string `json:"url"`
+}
+
+type GitOpsConfig struct {
+	RefreshInterval *int `json:"refreshInterval"` // Optional refresh interval in minutes, defaults to 10
 }
 
 type Application struct {

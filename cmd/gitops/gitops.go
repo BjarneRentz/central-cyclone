@@ -60,7 +60,8 @@ var GitOpsCmd = &cobra.Command{
 		sigChan := make(chan os.Signal, 1)
 		signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
-		ticker := time.NewTicker(1 * time.Minute)
+		refreshInterval := time.Duration(configProvider.GetGitOpsRefreshInterval()) * time.Minute
+		ticker := time.NewTicker(refreshInterval)
 		defer ticker.Stop()
 
 		for {

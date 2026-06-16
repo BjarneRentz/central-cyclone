@@ -8,6 +8,8 @@ The GitOps mode enables the automated creation of sboms for different deployed e
 
 ## Config
 
+The GitOps mode can be configured with an optional refresh interval (in minutes). If not specified, it defaults to 10 minutes.
+
 The config is quite complex on the first sight. This is due to the lose coupling betweens the applications themself, their repositories, the GitOps repo(s) and the corresponding DependencyTrack Project for each app in each of its versions. For a better understanding, we first define the terminology.
 
 **Application**: An application is a standalone software project that can be shipped independant. *Services* can be built around *Applications*. For example a *Basket-Service* can be made out of a *Basket-Service Backend* and *Basket-Service Frontend*. The Frontend and Backend can be deployed differently, be in different repositories or a shared one.
@@ -56,6 +58,9 @@ The config is quite complex on the first sight. This is due to the lose coupling
 ]
 
 
+"gitOps": {
+    "refreshInterval": 10
+},
 "gitOpsRepos": [
     {
         "url": "https://github.com/my-git-ops-repo1",
