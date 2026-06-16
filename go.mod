@@ -3,7 +3,7 @@ module central-cyclone
 go 1.25.0
 
 require (
-	github.com/DependencyTrack/client-go v0.18.0
+	github.com/DependencyTrack/client-go v0.19.0
 	github.com/go-git/go-git/v6 v6.0.0-20260217223433-8b943fe3eb84
 	github.com/mikefarah/yq/v4 v4.53.2
 	github.com/spf13/cobra v1.10.2
