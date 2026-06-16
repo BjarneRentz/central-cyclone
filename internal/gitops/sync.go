@@ -157,9 +157,12 @@ func (s *Syncer) checkUnhandledChanges(repoState *GitOpsRepoState) {
 			continue
 		}
 		// ToDo, proper Go routine
-		s.appChangeHandler.HandleAppChange(context.TODO(), appState.AppName, appState.VersionIdentifier.env, appState.CurrentVersion)
+		if err := s.appChangeHandler.HandleAppChange(context.TODO(), appState.AppName, appState.VersionIdentifier.env, appState.CurrentVersion); err != nil {
+			slog.Error("Failed to handle app change, will be retired on the next run", "app", appState.AppName, "env", appState.VersionIdentifier.env, "version", appState.CurrentVersion, "error", err)
+			continue
+		}
 		appState.Handled = true
-		slog.Info("App changed, handle new version", "app", appState.AppName, "env", appState.VersionIdentifier.env, "version", appState.CurrentVersion)
+		slog.Info("Handled app change", "app", appState.AppName, "env", appState.VersionIdentifier.env, "version", appState.CurrentVersion)
 	}
 }
 
