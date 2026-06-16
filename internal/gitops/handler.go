@@ -6,6 +6,7 @@ import (
 	"central-cyclone/internal/gittool"
 	"central-cyclone/internal/upload"
 	"context"
+	"fmt"
 	"log/slog"
 )
 
@@ -41,38 +42,32 @@ func (h CreateSbomChangeHandler) HandleAppChange(ctx context.Context, applicatio
 
 	appRepoUrl, err := h.configProvider.GetApplicationRepo(applicationName)
 	if err != nil {
-		slog.Error("Failed to get application repo URL", "application", applicationName, "error", err)
-		return err
+		return fmt.Errorf("get application repo %q: %w", applicationName, err)
 	}
 	// Clone or update the repo and checkout the specific version
 	clonedRepo, err := h.gitTool.CloneOrUpdateRepo(appRepoUrl)
 	if err != nil {
-		slog.Error("Failed to clone or update application repo", "repoUrl", appRepoUrl, "version", version, "error", err)
-		return err
+		return fmt.Errorf("clone repo %q: %w", appRepoUrl, err)
 	}
 
 	err = clonedRepo.CheckoutRevision(version)
 	if err != nil {
-		slog.Error("Failed to checkout revision", "version", version, "error", err)
-		return err
+		return fmt.Errorf("checkout %q: %w", version, err)
 	}
 
 	scanTarget, err := h.configProvider.GetScanTargetForApplication(applicationName, environment)
 	if err != nil {
-		slog.Error("Failed to get scan target for application and environment", "application", applicationName, "environment", environment, "error", err)
-		return err
+		return fmt.Errorf("get scan target %q/%q: %w", applicationName, environment, err)
 	}
 
 	sbom, err := h.sbomAnalyzer.AnalyzeProject(clonedRepo, scanTarget)
 	if err != nil {
-		slog.Error("Failed to analyze project", "application", applicationName, "environment", environment, "error", err)
-		return err
+		return fmt.Errorf("analyze %q/%q: %w", applicationName, environment, err)
 	}
 
 	err = h.dependencyTrackUploader.UploadSBOM(ctx, sbom)
 	if err != nil {
-		slog.Error("Failed to upload SBOM to DependencyTrack", "application", applicationName, "environment", environment, "error", err)
-		return err
+		return fmt.Errorf("upload SBOM %q/%q: %w", applicationName, environment, err)
 	}
 
 	return nil
