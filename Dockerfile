@@ -11,20 +11,21 @@ FROM mirror.gcr.io/library/node:24-alpine
 RUN apk add --no-cache maven ca-certificates
 RUN npm install -g @cyclonedx/cdxgen
 
-# Create non-root user
-RUN addgroup -S appuser && adduser -S appuser -G appuser -h /home/appuser
+# Create non-root user with numeric UID/GID
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -D -s /bin/sh -G appgroup -h /home/appuser appuser
 
 # Create workspace directory and set permissions
 RUN mkdir -p /home/appuser/.central-cyclone/workfolder/repos && \
     mkdir -p /home/appuser/.central-cyclone/workfolder/sboms && \
-    chown -R appuser:appuser /home/appuser
+    chown -R appuser:appgroup /home/appuser
 
 COPY --from=builder /app/central-cyclon /app/central-cyclon
 
-# Make sure appuser can execute the binary
+# Make sure the user can execute the binary
 RUN chmod +x /app/central-cyclon
 
-USER appuser
+USER 1001
 
 ENV HOME=/home/appuser
 

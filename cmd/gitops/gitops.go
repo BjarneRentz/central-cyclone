@@ -32,11 +32,11 @@ var GitOpsCmd = &cobra.Command{
 		}
 
 		ws, err := workspace.CreateLocalWorkspace()
-		ws.Clear()
 		if err != nil {
 			slog.Error("Could not create local workspace", "error", err)
 			return err
 		}
+		ws.Clear()
 
 		gitTool := gittool.CreateLocalGitCloner(ws)
 		configProvider := config.NewConfigProvider(settings)
