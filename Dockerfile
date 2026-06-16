@@ -12,8 +12,8 @@ RUN apk add --no-cache maven ca-certificates
 RUN npm install -g @cyclonedx/cdxgen
 
 # Create non-root user with numeric UID/GID
-RUN addgroup -g 1000 -S appgroup && \
-    adduser -u 1000 -D -s /bin/sh -G appgroup -h /home/appuser appuser
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -D -s /bin/sh -G appgroup -h /home/appuser appuser
 
 # Create workspace directory and set permissions
 RUN mkdir -p /home/appuser/.central-cyclone/workfolder/repos && \
@@ -25,7 +25,7 @@ COPY --from=builder /app/central-cyclon /app/central-cyclon
 # Make sure the user can execute the binary
 RUN chmod +x /app/central-cyclon
 
-USER 1000
+USER 1001
 
 ENV HOME=/home/appuser
 
