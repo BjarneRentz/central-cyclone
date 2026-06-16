@@ -65,9 +65,10 @@ var GitOpsCmd = &cobra.Command{
 		defer ticker.Stop()
 
 		for {
+			syncer.Reconcile()
 			select {
 			case <-ticker.C:
-				syncer.Reconcile()
+				// continue loop
 			case <-sigChan:
 				slog.Info("Received shutdown signal, exiting...")
 				return nil
