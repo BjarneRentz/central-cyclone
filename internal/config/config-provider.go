@@ -64,3 +64,12 @@ func (c *ConfigProvider) GetScanTargetForApplication(applicationName, env string
 	}
 	return nil, fmt.Errorf("project config not found for application: %s and environment: %s", applicationName, env)
 }
+
+// GetGitOpsRefreshInterval returns the configured refresh interval in minutes.
+// If not configured, it returns the default value of 10 minutes.
+func (c *ConfigProvider) GetGitOpsRefreshInterval() int {
+	if c.settings.GitOps.RefreshInterval == nil {
+		return 10
+	}
+	return *c.settings.GitOps.RefreshInterval
+}
