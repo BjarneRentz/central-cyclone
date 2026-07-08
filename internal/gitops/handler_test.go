@@ -131,7 +131,10 @@ func TestCreateSbomChangeHandler_HandleAppChange_Success(t *testing.T) {
 		},
 	}
 
-	configProvider := config.NewConfigProvider(settings)
+	configProvider, err := config.NewConfigProvider(settings)
+	if err != nil {
+		t.Fatalf("failed to create config provider: %v", err)
+	}
 	mockCloner := &MockRepoCloner{
 		repo: gittool.ClonedRepo{
 			Path:    tmpRepo,
@@ -187,7 +190,10 @@ func TestCreateSbomChangeHandler_HandleAppChange_ConfigRepoError(t *testing.T) {
 	settings := &config.Settings{
 		ApplicationRepos: []config.ApplicationRepo{},
 	}
-	configProvider := config.NewConfigProvider(settings)
+	configProvider, err := config.NewConfigProvider(settings)
+	if err != nil {
+		t.Fatalf("failed to create config provider: %v", err)
+	}
 
 	handler := CreateSbomChangeHandler{
 		configProvider:          configProvider,
@@ -196,7 +202,7 @@ func TestCreateSbomChangeHandler_HandleAppChange_ConfigRepoError(t *testing.T) {
 		dependencyTrackUploader: &MockUploader{},
 	}
 
-	err := handler.HandleAppChange(context.TODO(), "missing-app", "prod", "v1.0.0")
+	err = handler.HandleAppChange(context.TODO(), "missing-app", "prod", "v1.0.0")
 	if err == nil {
 		t.Fatal("expected an error when application repo is missing")
 	}
@@ -217,7 +223,10 @@ func TestCreateSbomChangeHandler_HandleAppChange_CloneError(t *testing.T) {
 		},
 		ApplicationRepos: []config.ApplicationRepo{{Applications: []string{"my-app"}, RepoUrl: tmpRepo}},
 	}
-	configProvider := config.NewConfigProvider(settings)
+	configProvider, err := config.NewConfigProvider(settings)
+	if err != nil {
+		t.Fatalf("failed to create config provider: %v", err)
+	}
 	cloneErr := errors.New("clone failure")
 	mockCloner := &MockRepoCloner{err: cloneErr}
 
@@ -228,7 +237,7 @@ func TestCreateSbomChangeHandler_HandleAppChange_CloneError(t *testing.T) {
 		dependencyTrackUploader: &MockUploader{},
 	}
 
-	err := handler.HandleAppChange(context.TODO(), "my-app", "prod", tag)
+	err = handler.HandleAppChange(context.TODO(), "my-app", "prod", tag)
 	if !errors.Is(err, cloneErr) {
 		t.Fatalf("expected clone error, got: %v", err)
 	}
@@ -244,7 +253,10 @@ func TestCreateSbomChangeHandler_HandleAppChange_CheckoutTagError(t *testing.T) 
 		},
 		ApplicationRepos: []config.ApplicationRepo{{Applications: []string{"my-app"}, RepoUrl: tmpRepo}},
 	}
-	configProvider := config.NewConfigProvider(settings)
+	configProvider, err := config.NewConfigProvider(settings)
+	if err != nil {
+		t.Fatalf("failed to create config provider: %v", err)
+	}
 	mockCloner := &MockRepoCloner{
 		repo: gittool.ClonedRepo{Path: tmpRepo, RepoUrl: tmpRepo},
 	}
@@ -256,7 +268,7 @@ func TestCreateSbomChangeHandler_HandleAppChange_CheckoutTagError(t *testing.T) 
 		dependencyTrackUploader: &MockUploader{},
 	}
 
-	err := handler.HandleAppChange(context.TODO(), "my-app", "prod", "missing-tag")
+	err = handler.HandleAppChange(context.TODO(), "my-app", "prod", "missing-tag")
 	if err == nil {
 		t.Fatal("expected error when checkout tag fails")
 	}
@@ -270,7 +282,10 @@ func TestCreateSbomChangeHandler_HandleAppChange_AnalysisError(t *testing.T) {
 		Applications:     []config.Application{{Name: "my-app", Type: "go", RepoPath: stringPtr("src"), Projects: []config.Project{{Environment: "prod", ProjectId: stringPtr("project-123")}}}},
 		ApplicationRepos: []config.ApplicationRepo{{Applications: []string{"my-app"}, RepoUrl: tmpRepo}},
 	}
-	configProvider := config.NewConfigProvider(settings)
+	configProvider, err := config.NewConfigProvider(settings)
+	if err != nil {
+		t.Fatalf("failed to create config provider: %v", err)
+	}
 	mockCloner := &MockRepoCloner{repo: gittool.ClonedRepo{Path: tmpRepo, RepoUrl: tmpRepo}}
 	analysisErr := errors.New("analysis failed")
 	mockAnalyzer := &MockAnalyzer{err: analysisErr}
@@ -282,7 +297,7 @@ func TestCreateSbomChangeHandler_HandleAppChange_AnalysisError(t *testing.T) {
 		dependencyTrackUploader: &MockUploader{},
 	}
 
-	err := handler.HandleAppChange(context.TODO(), "my-app", "prod", tag)
+	err = handler.HandleAppChange(context.TODO(), "my-app", "prod", tag)
 	if !errors.Is(err, analysisErr) {
 		t.Fatalf("expected analysis error, got: %v", err)
 	}
@@ -296,7 +311,10 @@ func TestCreateSbomChangeHandler_HandleAppChange_UploadError(t *testing.T) {
 		Applications:     []config.Application{{Name: "my-app", Type: "go", RepoPath: stringPtr("src"), Projects: []config.Project{{Environment: "prod", ProjectId: stringPtr("project-123")}}}},
 		ApplicationRepos: []config.ApplicationRepo{{Applications: []string{"my-app"}, RepoUrl: tmpRepo}},
 	}
-	configProvider := config.NewConfigProvider(settings)
+	configProvider, err := config.NewConfigProvider(settings)
+	if err != nil {
+		t.Fatalf("failed to create config provider: %v", err)
+	}
 	mockCloner := &MockRepoCloner{repo: gittool.ClonedRepo{Path: tmpRepo, RepoUrl: tmpRepo}}
 	mockAnalyzer := &MockAnalyzer{result: models.Sbom{ProjectId: "project-123", ProjectType: "go", Data: "sbom-data"}}
 	uploadErr := errors.New("upload failed")
@@ -309,7 +327,7 @@ func TestCreateSbomChangeHandler_HandleAppChange_UploadError(t *testing.T) {
 		dependencyTrackUploader: mockUploader,
 	}
 
-	err := handler.HandleAppChange(context.TODO(), "my-app", "prod", tag)
+	err = handler.HandleAppChange(context.TODO(), "my-app", "prod", tag)
 	if !errors.Is(err, uploadErr) {
 		t.Fatalf("expected upload error, got: %v", err)
 	}

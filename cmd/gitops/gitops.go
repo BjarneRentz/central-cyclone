@@ -39,7 +39,11 @@ var GitOpsCmd = &cobra.Command{
 		ws.Clear()
 
 		gitTool := gittool.CreateLocalGitCloner(ws)
-		configProvider := config.NewConfigProvider(settings)
+		configProvider, err := config.NewConfigProvider(settings)
+		if err != nil {
+			slog.Error("Configuration validation failed", "error", err)
+			return err
+		}
 		analyzer := analyzer.CdxgenAnalyzer{}
 		uploader, err := upload.CreateDependencyTrackUploader(settings)
 		if err != nil {
