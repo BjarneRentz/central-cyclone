@@ -52,16 +52,55 @@ func resolveRevision(repo *git.Repository, target string) (plumbing.Hash, error)
 
 func splitBuildMetadataRevision(revision string) (commitish string, ok bool) {
 	idx := strings.IndexByte(revision, '+')
-	if idx == -1 {
+	if idx != -1 {
+		return splitRevisionAtSeparator(revision[idx+1:])
+	}
+
+	idx = strings.IndexByte(revision, '-')
+	if idx == -1 || !isSimpleVersionTag(revision[:idx]) {
 		return "", false
 	}
 
-	commitish = revision[idx+1:]
+	return splitRevisionAtSeparator(revision[idx+1:])
+}
+
+func splitRevisionAtSeparator(commitish string) (string, bool) {
 	if len(commitish) < minCommitishHexLen || len(commitish) > maxCommitishHexLen || !isHex(commitish) {
 		return "", false
 	}
 
 	return commitish, true
+}
+
+func isSimpleVersionTag(tag string) bool {
+	if tag == "" {
+		return false
+	}
+
+	if tag[0] == 'v' {
+		tag = tag[1:]
+	}
+	if tag == "" {
+		return false
+	}
+
+	parts := strings.Split(tag, ".")
+	if len(parts) != 3 {
+		return false
+	}
+
+	for _, part := range parts {
+		if part == "" {
+			return false
+		}
+		for _, r := range part {
+			if r < '0' || r > '9' {
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 func isHex(s string) bool {
