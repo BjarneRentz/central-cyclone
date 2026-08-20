@@ -56,7 +56,7 @@ func splitBuildMetadataRevision(revision string) (commitish string, ok bool) {
 		return splitRevisionAtSeparator(revision[idx+1:])
 	}
 
-	idx = strings.LastIndexByte(revision, '-')
+	idx = strings.IndexByte(revision, '-')
 	if idx == -1 || !isSimpleVersionTag(revision[:idx]) {
 		return "", false
 	}
@@ -77,7 +77,7 @@ func isSimpleVersionTag(tag string) bool {
 		return false
 	}
 
-	if tag[0] == 'v' || tag[0] == 'V' {
+	if tag[0] == 'v' {
 		tag = tag[1:]
 	}
 	if tag == "" {
