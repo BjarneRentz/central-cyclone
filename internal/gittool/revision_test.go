@@ -31,6 +31,18 @@ func TestSplitBuildMetadataRevision(t *testing.T) {
 			wantOk:        true,
 		},
 		{
+			name:          "valid semver hyphen short hex suffix",
+			revision:      "1.0.0-34ab12cd",
+			wantCommitish: "34ab12cd",
+			wantOk:        true,
+		},
+		{
+			name:          "valid v-prefixed semver hyphen short hex suffix",
+			revision:      "v1.0.0-34ab12cd",
+			wantCommitish: "34ab12cd",
+			wantOk:        true,
+		},
+		{
 			name:          "uppercase hex suffix",
 			revision:      "v1.0.0+34AB12CD",
 			wantCommitish: "34AB12CD",
@@ -69,6 +81,12 @@ func TestSplitBuildMetadataRevision(t *testing.T) {
 		{
 			name:          "second plus is part of the commitish check, not a separator",
 			revision:      "v1.0.0+34ab+12cd",
+			wantCommitish: "",
+			wantOk:        false,
+		},
+		{
+			name:          "non-semver hyphen format is not treated as commitish syntax",
+			revision:      "release-34ab12cd",
 			wantCommitish: "",
 			wantOk:        false,
 		},
@@ -245,5 +263,23 @@ func TestResolveTargetHash_FallsBackWhenSuffixIsNotHex(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), revision) {
 		t.Fatalf("expected error to contain full revision %q, got: %v", revision, err)
+	}
+}
+
+func TestResolveTargetHash_PrefersCommitishForSemverHyphenFormat(t *testing.T) {
+	fixture := newTestRepo(t, "v1.0.0", "v2.0.0")
+	c := &ClonedRepo{Path: fixture.path}
+	repo, err := c.openRepository()
+	if err != nil {
+		t.Fatalf("failed to open repository: %v", err)
+	}
+
+	revision := "1.4.5-" + fixture.firstCommit[:8]
+	hash, err := resolveTargetHash(repo, revision)
+	if err != nil {
+		t.Fatalf("expected success, got error: %v", err)
+	}
+	if hash.String() != fixture.firstCommit {
+		t.Fatalf("expected hash %q, got %q", fixture.firstCommit, hash.String())
 	}
 }
